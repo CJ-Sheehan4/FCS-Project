@@ -2,11 +2,6 @@
 #include <vector>
 #include "Character.h"
 using namespace std;
-/*
-Task #1:
-my alphabets are going to be represented as a vector of character obejcts
-my characters within the alphabet will be a defined class/object, written below
-*/
 
 int main() {
 	
