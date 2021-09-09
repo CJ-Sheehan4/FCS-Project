@@ -1,4 +1,4 @@
-FCS - project.vcxproj
-FCS - project.vcxproj.filters
-FCS - project.vcxproj.user
-Debug
+.vcxproj
+.filters
+.user
+Debug/
