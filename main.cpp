@@ -1,23 +1,28 @@
 #include <iostream>
 #include <list>
 using namespace std;
-list<list<int>> getLayer(list<list<int>> layerOne, list<int> sigma, int N);
+list<list<int>> getLayer(list<int> sigma, int N);
+list<int> lexi(list<int> sigma, int N);
 void printLayer(list<list<int>> layer);
+void printElement(list<int> element);
 int main() {
 	//Task #1
 	list<int> sigma = { 0, 1 };	// -1 represents epsilon, the alphabet consists of positive integers, including 0
 	//Task #2 - using a list to represent a string 
-	list<list<int>> layerOne;
-	layerOne = getLayer(layerOne, sigma, 4);
+	list<list<int>> layerOne = getLayer(sigma, 4);
 	printLayer(layerOne);
+	cout << endl;
+	list<int> element = lexi(sigma, 31);
+	printElement(element);
 	return 0;
 }
-list<list<int>> getLayer(list<list<int>> layer, list<int> sigma, int N) {
+list<list<int>> getLayer(list<int> sigma, int N) {
 	list<int>::iterator i;
 	list<list<int>>::iterator j;
 	list<int>::iterator sigmaIt;
 	list<list<list<int>>> uniLayers;
 	list<list<int>> newLayer;
+	list<list<int>> layer;
 	list<int>temp;
 	list<int> epsilon = { -1 };
 	int count = 0;
@@ -70,4 +75,39 @@ void printLayer(list<list<int>> layer) {
 		}
 		cout << "}";
 	}
+}
+
+list<int> lexi(list<int> sigma, int N) {
+	list<int> strElement;
+	list<list<int>> layerN;
+	list<list<int>>::iterator it;
+	int i = 0;
+	bool found = false;
+	while (!found) {
+		layerN = getLayer(sigma, i);
+		int size = layerN.size();
+		if (N > size) {
+			N = N - size;
+		}
+		else {
+			it = layerN.begin();
+			N--;
+			while (N > 0) {
+				N--;
+				it++;
+			}
+			strElement = *it;
+			found = true;
+		}
+		i++;
+	}
+	return strElement;
+}
+void printElement(list<int> element) {
+	list<int>::iterator i;
+	cout << "Element: {";
+	for (i = element.begin(); i != element.end(); i++) {
+		cout << *i;
+	}
+	cout << "}";
 }
