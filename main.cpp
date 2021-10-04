@@ -1,4 +1,5 @@
 #include <iostream>
+#include <functional>
 #include <list>
 #include "DFA.h"
 #include "DFA.cpp"
@@ -25,6 +26,9 @@ void printElement(list<int> element);
 //DFA<char, int> *onlyCharFunc(int c);
 template<typename State, typename C>
 void update(DFA<char, int> dfa, Config<State, C>& cfg);
+DFA<char, int> onlyChar(int c);
+void runFullConfig(DFA<char, int>& dfa, list<int> str);
+
 
 int main() {
 	//Task #1
@@ -32,10 +36,10 @@ int main() {
 
 	//Task #2 - using a list to represent a string (e.g. list<int> str = {0,1,2,99,-1}); 
 
-	list<list<int>> layerOne = getLayer(sigma, 3);
+	list<list<int>> layerOne = getLayer(sigma, 2);
 	printLayer(layerOne);
-	cout << endl;
-	list<int> element = lexi(sigma, 3);
+	cout  << endl;
+	list<int> element = lexi(sigma, 6);
 	printElement(element);
 	
 	//testing DFA setters
@@ -58,6 +62,7 @@ int main() {
 	else if (!(test->F('B'))) {
 		cout << "F fail";
 	}
+	
 	cout << endl;
 	//DFA that accepts no strings
 	DFA<char, int>* noStr = new DFA<char, int>(
@@ -92,20 +97,14 @@ int main() {
 		},
 		[](char s) {return s == 'A'; }
 		);
+
 	//testing DFA's with update
-	list<int> str = {0,1,0,1,-1};
-	Config<char, list<int>> config(onlyEven->q0, str);
-	cout << "Config for even: " << endl;
-	cout << '[' << config.curS << ']';
-	config.printStr();
-	while (config.curStr.front() != -1) {
-		update(*onlyEven, config);
-		cout << '[' << config.curS << ']';
-		config.printStr();
-	}
-	if (!(onlyEven->F(config.curS))) {
-		cout << endl << "Does not accept" << endl;
-	}
+	list<int> str = {1,1,0,0,0,0,0,0,0,0,-1};
+	list<int> str1 = {1,-1};
+	runFullConfig(*onlyEven, str);
+	cout << endl;
+	DFA<char, int> onlyCharDFA = onlyChar(1);
+	runFullConfig(onlyCharDFA, str1);
 	return 0;
 }
 list<list<int>> getLayer(list<int> sigma, int N) {
@@ -151,6 +150,7 @@ list<list<int>> getLayer(list<int> sigma, int N) {
 	}
 	return uniLayers.back();
 }
+
 void printLayer(list<list<int>> layer) {
 	list<list<int>>::iterator rowIt;
 	list<int>::iterator columnIt;
@@ -222,4 +222,33 @@ void update(DFA<char, int> dfa, Config<State, C>& cfg) {
 	list<int>::iterator i = cfg.curStr.begin();
 	cfg.curS = dfa.d(cfg.curS, *i);
 	cfg.curStr.pop_front();
+	
+}
+DFA<char, int> onlyChar(int c) {
+	//onlyChar
+	DFA<char, int> onlyCharDFA(
+		[](char curS) {return ((curS == 'A') || (curS == 'B') || (curS == 'C')); },
+		'A',
+		[c](char curS, int curC) { 
+			if (curS == 'A' && curC == c)
+				return 'B';
+			else 
+				return 'C';
+		} ,
+		[](char curS) {return curS == 'B'; }
+	);
+	return onlyCharDFA;
+}
+void runFullConfig(DFA<char,int> &dfa, list<int> str) {
+	Config<char, list<int>> config(dfa.q0, str);
+	cout << '[' << config.curS << ']';
+	config.printStr();
+	while (config.curStr.front() != -1) {
+		update(dfa, config);
+		cout << '[' << config.curS << ']';
+		config.printStr();
+	}
+	if (!(dfa.F(config.curS))) {
+		cout << endl << "Does not accept!" << endl;
+	}
 }
