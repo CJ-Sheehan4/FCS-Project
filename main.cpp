@@ -1,5 +1,6 @@
 #include <iostream>
 #include <functional>
+#include <string>
 #include <list>
 #include "DFA.h"
 #include "DFA.cpp"
@@ -64,14 +65,14 @@ int main() {
 	}
 	
 	cout << endl;
-	//DFA that accepts no strings
+	// 1. DFA that accepts no strings
 	DFA<char, int>* noStr = new DFA<char, int>(
 		[](char s) {return s == 'A'; },
 		'A',
 		[](char s, int c) {return 'A'; },
 		[](char s) {return false; }
 		);
-	//DFA that only accepts empty string
+	// 2. DFA that only accepts empty string
 	DFA<char, int>* onlyEmpty = new DFA<char, int>(
 		[](char s) {return (s == 'A') || (s == 'B'); },
 		'A',
@@ -85,7 +86,7 @@ int main() {
 		},
 		[](char s) {return s == 'A'; }
 		);
-	//DFA that only takes strings of even length
+	// 3. DFA that only takes strings of even length
 	DFA<char, int>* onlyEven = new DFA<char, int>(
 		[](char s) {return (s == 'A') || (s == 'B'); },
 		'A',
@@ -97,14 +98,166 @@ int main() {
 		},
 		[](char s) {return s == 'A'; }
 		);
-
-	//testing DFA's with update
-	list<int> str = {1,1,0,0,0,0,0,0,0,0,-1};
-	list<int> str1 = {1,-1};
-	runFullConfig(*onlyEven, str);
-	cout << endl;
+	// 4. DFA for strings of only zeros
+	DFA<char, int>* onlyZeros = new DFA<char, int>(
+		[](char s) {return (s == 'A') || (s == 'B') || (s == 'C'); },
+		'A',
+		[](char s, int c) {
+			if ((c == 0) && (s == 'A' || s == 'B'))
+				return 'B';
+			else
+				return 'C';
+		},
+		[](char s) {return s == 'B'; }
+		);
+	// 5. DFA that only accepts the string of my name "CJ"
+	DFA<string, char>* myName = new DFA<string, char>(
+		[](string s) {return (s == "A") || (s == "B") || (s == "C") || (s == "FAIL"); },
+		"A",
+		[](string s, char c) {
+			if ((c == 'C') && (s == "A"))
+				return "B";
+			else if ((c == 'J') && (s == "B"))
+				return "C";
+			else
+				return "FAIL";
+		},
+		[](string s) {return s == "C"; }
+		);
+	// 6. DFA that only accepts strings that are not my name
+	DFA<char, char>* notMyName = new DFA<char, char>(
+		[](char s) {return (s == 'A') || (s == 'B') || (s == 'C'); },
+		'A',
+		[](char s, char c) {
+			if ((c == 'C') && (s == 'A'))
+				return 'B';
+			else if ((c != 'C') && (s == 'A'))
+				return 'A';
+			else if ((c == 'J') && (s == 'B'))
+				return 'C';
+			else if ((c != 'J') && (s == 'B'))
+				return 'A';
+			else if (s == 'C')
+				return 'A';
+		},
+		[](char s) {return s == 'A'; }
+		);
+	// 7. DFA that only reads a string thats a comment line
+	DFA<string, char>* comments = new DFA<string, char>(
+		[](string s) {return (s == "A") || (s == "B") || (s == "C") || (s == "FAIL"); },
+		"A",
+		[](string s, char c) {
+			if ((c == '/') && (s == "A"))
+				return "B";
+			else if ((c == '/') && (s == "B"))
+				return "C";
+			else if (s == "C")
+				return "C";
+			else
+				return "FAIL";
+		},
+		[](string s) {return s == "C"; }
+		);
+	// 8. DFA that only takes strings with the sequence "01" anywehre in the string
+	// e.g. "00011111" accepts, "111100000" does not accept
+	DFA<char, int>* zeroOne = new DFA<char, int>(
+		[](char s) {return (s == 'A') || (s == 'B') || (s == 'C'); },
+		'A',
+		[](char s, int c) {
+			if ((c == 0) && (s == 'A'))
+				return 'B';
+			else if ((c == 1) && (s == 'A'))
+				return 'A';
+			else if ((c == 0) && (s == 'B'))
+				return 'B';
+			else if ((c == 1) && (s == 'B'))
+				return 'C';
+			else if (s == 'C')
+				return 'C';
+		},
+		[](char s) {return s == 'C'; }
+		);
+	// 9. DFA representing a traffic light
+	//the states are green, yellow, and red
+	// the characters are 0 and 1. 0 representing that the time has not elapsed for
+	//the light to change, and 1 representing that the time has elapsed for the light to change
+	//I'll say that the accept state is green. Theres also no start state, but I'll say its green so the DFA works
+	DFA<char, int>* trafficLight = new DFA<char, int>(
+		[](char s) {return (s == 'G') || (s == 'Y') || (s == 'R'); },
+		'G',
+		[](char s, int c) {
+			if (s == 'G' && c == 0)
+				return 'G';
+			else if (s == 'G' && c == 1)
+				return 'Y';
+			else if (s == 'Y' && c == 0)
+				return 'Y';
+			else if (s == 'Y' && c == 1)
+				return 'R';
+			else if (s == 'R' && c == 0)
+				return 'R';
+			else if (s == 'R' && c == 1)
+				return 'G';
+		},
+		[](char s) {return false; }
+		);
+	//10. argh
+	DFA<char, char>* argh = new DFA<char, char>(
+		[](char s) {return (s == 'A') || (s == 'B') || (s == 'C') || (s == 'D') || (s == 'E') || (s == 'F'); },
+		'A',
+		[](char s, char c) {
+			if (s == 'A' && c == 'a')
+				return 'B';
+			else if (s == 'B' && c == 'a')
+				return 'B';
+			else if (s == 'B' && c == 'r')
+				return 'C';
+			else if (s == 'C' && c == 'r')
+				return 'C';
+			else if (s == 'C' && c == 'g')
+				return 'D';
+			else if (s == 'D' && c == 'g')
+				return 'D';
+			else if (s == 'D' && c == 'h')
+				return 'E';
+			else if (s == 'E' && c == 'h')
+				return 'E';
+			else
+				return 'F';
+		},
+		[](char s) {return s == 'E'; }
+		);
+	//11. only accpets strings of signed binary numbers
+	DFA<char, int>* signedBinary = new DFA<char, int>(
+		[](char s) {return (s == 'A') || (s == 'B') || (s == 'C'); },
+		'A',
+		[](char s, int c) {
+			if (s == 'A' && c == 1)
+				return 'B';
+			else if (s == 'A' && c == 0)
+				return 'C';
+			else if (s == 'B')
+				return 'B';
+			else if (s == 'C')
+				return 'C';
+		},
+		[](char s) {return s == 'B'; }
+		);
+	// 12. DFA that creates accepts exactly one character
+	list<int> str1 = { 1,-1 };
 	DFA<char, int> onlyCharDFA = onlyChar(1);
+	// testing update rule on DFA's
+	list<int> str = {1,1,0,0,0,0,0,0,0,0,-1};
 	runFullConfig(onlyCharDFA, str1);
+	cout << endl << endl;
+	runFullConfig(*onlyEven, str);
+	cout << endl << endl;
+	
+	
+	// testing myName DFA if it accepts my name
+	if(!(myName->F(myName->d(myName->d("A", 'C'), 'J')))) {
+		cout << "Does not accept string in DFA myName" << endl;
+	}
 	return 0;
 }
 list<list<int>> getLayer(list<int> sigma, int N) {
@@ -201,22 +354,7 @@ void printElement(list<int> element) {
 		cout << *i;
 	}
 	cout << "}";
-}/*
-DFA<char, int>* onlyCharFunc(int c) {
-	char s = 'A';
-	
-	DFA<char, int>* onlyChar = new DFA<char, int>(
-		[](char s) {return (s == 'A') || (s == 'B') || (s == 'C'); },
-		'A',
-		[](char s, int curC) {
-			if (curC == 1)
-				return 'Z';
-		},
-		[](char s) {return s == 'B'; }
-	);
-	return onlyChar;
 }
-*/
 template<typename State, typename C>
 void update(DFA<char, int> dfa, Config<State, C>& cfg) {
 	list<int>::iterator i = cfg.curStr.begin();
