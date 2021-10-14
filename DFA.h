@@ -15,6 +15,7 @@ public:
 	void setq0(State q0Set) { q0 = q0Set; };
 	void setd(function<State(State, C)>DSet) { d = DSet; };
 	void setF(bool (*FSet)(State)) { F = FSet; };
+	bool accept(list<int> str);
 	//fields
 	bool (*Q)(State);			// function pointer representing the set of states
 	State q0;					// q0 is of type State and holds the first state of the DFA
