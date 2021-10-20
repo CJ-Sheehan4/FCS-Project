@@ -2,8 +2,10 @@
 #include <functional>
 #include <string>
 #include <list>
+#include <utility>
 #include "DFA.h"
 #include "DFA.cpp"
+
 
 using namespace std;
 template<typename State, typename Str>
@@ -30,6 +32,7 @@ DFA<int, int> *onlyChar(int c);
 list<Config<int, list<int>>> trace(DFA<int, int>* dfa, list<int> str);
 void printConfigList(list<Config<int, list<int>>>& TL);
 void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, list<list<int>> accepts, list<list<int>> nAccepts);
+pair<bool, list<int>> wouldBeAccept(DFA<int, int>*dfa);
 
 int main() {
 	//Task #1
@@ -283,6 +286,17 @@ int main() {
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } }
 		);
 
+	pair<bool, list<int>> val = wouldBeAccept(onlyEven);
+	if (val.first) {
+		cout << '{';
+		for (auto i : val.second) {
+			cout << i;
+		}
+		cout << '}';
+	}
+	else {
+		cout << "DFA accepts no strings!" << endl;
+	}
 	return 0;
 }
 list<list<int>> getLayer(list<int> sigma, int N) {
@@ -400,7 +414,7 @@ DFA<int, int> *onlyChar(int c) {
 	);
 	return onlyCharDFA;
 }
-
+//Task #11 - a function that returns a list of configurations that a DFA visits
 list<Config<int,list<int>>> trace(DFA<int, int> *dfa, list<int> str) {
 	Config<int, list<int>> c(dfa->q0, str);
 	list<Config<int, list<int>>> lc;
@@ -443,4 +457,15 @@ void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, list<list<int>>
 	cout << DFAName <<":" << endl;
 	printConfigList(traceList);
 	cout << endl;
+}
+// unfinished task #12
+pair<bool, list<int>> wouldBeAccept(DFA<int, int>* dfa) {
+	pair<bool, list<int>> ret;
+	if (dfa->q0 == 0) {
+		ret = { true, { 0, 1 } };
+	}
+	else {
+		ret.first =  false ;
+	}
+	return ret;
 }
