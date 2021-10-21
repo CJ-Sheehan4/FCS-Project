@@ -3,6 +3,7 @@
 #include <string>
 #include <list>
 #include <utility>
+#include <algorithm>
 #include "DFA.h"
 #include "DFA.cpp"
 
@@ -285,8 +286,8 @@ int main() {
 		{ { 1 } },
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } }
 		);
-
-	pair<bool, list<int>> val = wouldBeAccept(onlyEven);
+	
+	pair<bool, list<int>> val = wouldBeAccept(zeroOne);
 	if (val.first) {
 		cout << '{';
 		for (auto i : val.second) {
@@ -297,6 +298,7 @@ int main() {
 	else {
 		cout << "DFA accepts no strings!" << endl;
 	}
+	
 	return 0;
 }
 list<list<int>> getLayer(list<int> sigma, int N) {
@@ -458,14 +460,34 @@ void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, list<list<int>>
 	printConfigList(traceList);
 	cout << endl;
 }
-// unfinished task #12
+// Task #12
 pair<bool, list<int>> wouldBeAccept(DFA<int, int>* dfa) {
 	pair<bool, list<int>> ret;
-	if (dfa->q0 == 0) {
-		ret = { true, { 0, 1 } };
-	}
-	else {
-		ret.first =  false ;
+	ret.first = false;
+	list<Config<int, list<int>>> h = { Config<int, list<int>>(dfa->q0, {}) };
+	list<int> v = {dfa->q0};
+	int qi, qj;
+	list<int> w;
+	list<int> sigma = {0, 1};
+	while (!h.empty()) {
+		qi = h.front().curS;
+		w = h.front().curStr;
+		h.pop_front();
+		if (dfa->F(qi)) {
+			ret.first = true;
+			ret.second = w;
+			break;
+		}
+		for (auto i : sigma) {
+			qj = dfa->d(qi, i);
+			auto found = find(v.begin(), v.end(), qj);
+			if (found == v.end()) {
+				v.push_back(qj);
+				w.push_back(i);
+				h.push_back(Config<int, list<int>>(qj, w));
+				w.pop_back();
+			}
+		}
 	}
 	return ret;
 }
