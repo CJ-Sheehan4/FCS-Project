@@ -3,10 +3,10 @@
 #include <string>
 #include <list>
 #include <utility>
+#include <optional>
 #include <algorithm>
 #include "DFA.h"
 #include "DFA.cpp"
-
 
 using namespace std;
 template<typename State, typename Str>
@@ -33,11 +33,16 @@ DFA<int, int> *onlyChar(int c);
 list<Config<int, list<int>>> trace(DFA<int, int>* dfa, list<int> str);
 void printConfigList(list<Config<int, list<int>>>& TL);
 void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, list<list<int>> accepts, list<list<int>> nAccepts);
-pair<bool, list<int>> wouldBeAccept(DFA<int, int>*dfa);
+pair<bool, list<int>> wouldBeAccept(DFA<int, int>*dfa, list<int> sigma);
+void testWouldBeAccept(pair<bool, list<int>> dfaPairStr);
 
 int main() {
+	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
+		'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+	list<int> binaryAlpha = { 0, 1 };
+	list<int> zeroNineAlpha = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 	//Task #1
-	//list<int> sigma = { 0,1 };	// -1 represents epsilon, the alphabet consists of positive integers, including 0
+	//list<int> sigma = { 0, 1 } ;	// the alphabet
 	//Task #2 - using a list to represent a string (e.g. list<int> str = {0,1,2,99,-1}); 
 	/*
 	list<list<int>> layerOne = getLayer(sigma, 2);
@@ -56,8 +61,10 @@ int main() {
 	);
 	testDFA(noStr, "No String", true,
 		{ {} },
-		{ { 0,0,0 }, { 1 }, { 1,2,3 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
+		{ { 0, 0, 0 }, { 1 }, { 1, 2, 3 }, { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, 1 } }
 		);
+	testWouldBeAccept(wouldBeAccept(noStr, zeroNineAlpha));
+	cout << endl;
 
 	// 2. DFA that only accepts empty string
 	DFA<int, int>* onlyEmpty = new DFA<int, int>(
@@ -73,8 +80,10 @@ int main() {
 		);
 	testDFA(onlyEmpty, "Only Empty Str", false,
 		{ { } },
-		{{ 0,0,0 }, { 1 }, { 1,2,3 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 }}
+		{{ 0, 0, 0 }, { 1 }, { 1, 2, 3 }, { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, 1, 1, 1 }}
 		);
+	testWouldBeAccept(wouldBeAccept(onlyEmpty, zeroNineAlpha));
+	cout << endl;
 
 	// 3. DFA that only takes strings of even length
 	DFA<int, int>* onlyEven = new DFA<int, int>(
@@ -92,6 +101,8 @@ int main() {
 		{ { 0,1 }, { 0,0 }, { 1,1 }, { 1,2,3,4 }, { 1,2,3,4,5,6 }, { 1,1,1,1,1,1,1,1 } },
 		{ { 0,0,0 }, { 1 }, { 1,2,3 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
 		);
+	testWouldBeAccept(wouldBeAccept(onlyEven, zeroNineAlpha));
+	cout << endl;
 
 	// 4. DFA for strings of only zeros
 	DFA<int, int>* onlyZeros = new DFA<int, int>(
@@ -106,9 +117,11 @@ int main() {
 		[](int s) {return s == 1; }
 		);
 	testDFA(onlyZeros, "Only Zero's", false,
-		{ { 0 }, { 0,0 }, { 0,0,0 }, { 0,0,0,0 }, { 0,0,0,0,0 }, { 0,0,0,0,0,0 } },				//accepts
-		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }	//does not accept
+		{ { 0 }, { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } },				//accepts
+		{ { }, { 1 }, { 0, 0, 0, 1 }, { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }	//does not accept
 		);
+	testWouldBeAccept(wouldBeAccept(onlyZeros, zeroNineAlpha));
+	cout << endl;
 
 	// 5. DFA that only accepts the string of my name "CJ"
 	DFA<int, int>* myName = new DFA<int, int>(
@@ -128,6 +141,8 @@ int main() {
 		{ { 'C', 'J' }, { 67,74 } },	//accepts
 		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } } //does not accept
 		);
+	testWouldBeAccept(wouldBeAccept(myName, englishAlpha));
+	cout << endl;
 
 	// 6. DFA that only accepts strings that are not my name
 	DFA<int, int>* notMyName = new DFA<int, int>(
@@ -151,6 +166,8 @@ int main() {
 		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
 		{ { 'C', 'J' }, { 67,74 } }
 		);
+	testWouldBeAccept(wouldBeAccept(notMyName, englishAlpha));
+	cout << endl;
 
 	// 7. DFA that only reads a string that's a comment line
 	DFA<int, int>* comments = new DFA<int, int>(
@@ -169,9 +186,12 @@ int main() {
 		[](int s) {return s == 2; }
 		);
 	testDFA(comments, "Comments", false,
-		{ { '/','/' }, { '/','/' , 0 }, { '/','/','C', 'J' }, { '/','/', 'y','a'}, { '/', '/' , 4, 5, 6 }, { '/','/', 5, 6, 'y'} },
+		{ { '/','/' }, { '/','/' , 'A'}, {'/','/','C', 'J'}, {'/','/', 'y','a'}, 
+			{'/', '/' , 'A', 'B', 'C' }, {'/','/', 5, 6, 'y'}},
 		{ { }, { '/', 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
 		);
+	testWouldBeAccept(wouldBeAccept(comments, englishAlpha));
+	cout << endl;
 
 	// 8. DFA that only takes strings with the sequence "01" anywehre in the string
 	// e.g. "00011111" accepts, "111100000" does not accept
@@ -196,6 +216,8 @@ int main() {
 		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 } },
 		{ { }, { 1 }, { 1,1,1,0 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
 		);
+	testWouldBeAccept(wouldBeAccept(zeroOne, binaryAlpha));
+	cout << endl;
 
 	// 9. DFA representing a traffic light
 	//the states are green, yellow, and red
@@ -225,38 +247,42 @@ int main() {
 		{ { } },
 		{ { 0,0,0 }, { 1 }, { 1, 1, 1}, { 1, 0, 1, 0, 1 }, { 1, 1, 1, 0, 0, 0}, { 0, 0, 1, 1} }
 	);
+	testWouldBeAccept(wouldBeAccept(trafficLight, binaryAlpha));
+	cout << endl;
 
 	//10. argh
-	DFA<int, int>* argh = new DFA<int, int>(
+	DFA<int, int>* ARGH = new DFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4) || (s == 5); },
 		0,
 		[](int s, int c) {
-			if (s == 0 && c == 97)
+			if (s == 0 && c == 65) // 65 = A
 				return 1;
-			else if (s == 1 && c == 97)
+			else if (s == 1 && c == 65) 
 				return 1;
-			else if (s == 1 && c == 114)
+			else if (s == 1 && c == 82) // 82 = R
 				return 2;
-			else if (s == 2 && c == 114)
+			else if (s == 2 && c == 82)
 				return 2;
-			else if (s == 2 && c == 103)
+			else if (s == 2 && c == 71) // 71 = G
 				return 3;
-			else if (s == 3 && c == 103)
+			else if (s == 3 && c == 71)
 				return 3;
-			else if (s == 3 && c == 104)
+			else if (s == 3 && c == 72) // 72 = H 
 				return 4;
-			else if (s == 4 && c == 104)
+			else if (s == 4 && c == 72)
 				return 4;
 			else
 				return 5;
 		},
 		[](int s) {return s == 4; }
 		);
-	testDFA(argh, "ARGH", false,
-		{ { 'a','r','g','h' }, { 'a','r','r','g','h' }, { 'a','a','r','r','g','g','h','h' }, { 'a','r','g','g','h' },
-		{ 'a','r','g','h','h' }, { 'a','a','a','r','r','r','g','g','g','h','h','h' } },
-		{ { }, { 1 }, { 1,1,1,0 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
+	testDFA(ARGH, "ARGH", false,
+		{ { 'A','R','G','H' }, { 'A','R','R','G','H' }, { 'A','A','R','R','G','G','H','H' }, { 'A','R','G','G','H' },
+			{ 'A','R','G','H','H' }, { 'A','A','A','R','R','R','G','G','G','H','H','H' } },
+		{ { }, { 1 }, { 1,2,3,4,5 }, { 'A','R','G' }, { 'A','R','H','G' }, { 'O','K' } }
 		);
+	testWouldBeAccept(wouldBeAccept(ARGH, englishAlpha));
+	cout << endl;
 
 	//11. only accpets strings of signed binary numbers
 	DFA<int, int>* signedBinary = new DFA<int, int>(
@@ -278,6 +304,8 @@ int main() {
 		{ { 1, 0 }, { 1,1,0 }, { 1,1,1,0 }, { 1,0,1,0,1,0 }, { 1,1,1,1,1,1 }, { 1,0,0,0,0,0 } },
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } }
 		);
+	testWouldBeAccept(wouldBeAccept(signedBinary, binaryAlpha));
+	cout << endl;
 
 	// 12. DFA that creates accepts exactly one character
 	list<int> str1 = { 1 };
@@ -286,19 +314,8 @@ int main() {
 		{ { 1 } },
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } }
 		);
-	
-	pair<bool, list<int>> val = wouldBeAccept(zeroOne);
-	if (val.first) {
-		cout << '{';
-		for (auto i : val.second) {
-			cout << i;
-		}
-		cout << '}';
-	}
-	else {
-		cout << "DFA accepts no strings!" << endl;
-	}
-	
+	testWouldBeAccept(wouldBeAccept(onlyCharDFA, binaryAlpha));
+
 	return 0;
 }
 list<list<int>> getLayer(list<int> sigma, int N) {
@@ -461,14 +478,13 @@ void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, list<list<int>>
 	cout << endl;
 }
 // Task #12
-pair<bool, list<int>> wouldBeAccept(DFA<int, int>* dfa) {
+pair<bool, list<int>> wouldBeAccept(DFA<int, int>* dfa, list<int> sigma) {
 	pair<bool, list<int>> ret;
 	ret.first = false;
 	list<Config<int, list<int>>> h = { Config<int, list<int>>(dfa->q0, {}) };
 	list<int> v = {dfa->q0};
 	int qi, qj;
 	list<int> w;
-	list<int> sigma = {0, 1};
 	while (!h.empty()) {
 		qi = h.front().curS;
 		w = h.front().curStr;
@@ -490,4 +506,18 @@ pair<bool, list<int>> wouldBeAccept(DFA<int, int>* dfa) {
 		}
 	}
 	return ret;
+}
+void testWouldBeAccept(pair<bool, list<int>> dfaPairStr) {
+	if (dfaPairStr.first) {
+		cout << "possible string: ";
+		cout << '{';
+		for (auto i : dfaPairStr.second) {
+			cout << i;
+		}
+		cout << '}';
+	}
+	else {
+		cout << "*** DFA accepts no strings! ***";
+	}
+	cout << endl;
 }
