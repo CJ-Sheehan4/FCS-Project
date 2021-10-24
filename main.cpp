@@ -32,9 +32,11 @@ Config<int, list<int>> update(DFA<int, int> *dfa, Config<int, list<int>> cfg);
 DFA<int, int> *onlyChar(int c);
 list<Config<int, list<int>>> trace(DFA<int, int>* dfa, list<int> str);
 void printConfigList(list<Config<int, list<int>>>& TL);
-void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, list<list<int>> accepts, list<list<int>> nAccepts);
+void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, bool allAccepts, 
+	list<list<int>> accepts, list<list<int>> nAccepts);
 pair<bool, list<int>> wouldBeAccept(DFA<int, int>*dfa, list<int> sigma);
 void testWouldBeAccept(pair<bool, list<int>> dfaPairStr);
+DFA<int, int> *complement(DFA<int, int> dfa, list<int> sigma);
 
 int main() {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -52,40 +54,40 @@ int main() {
 	printElement(element);
 	*/
 
-	// 1. DFA that accepts no strings
+	// DFA that accepts no strings
 	DFA<int, int>* noStr = new DFA<int, int>(
 		[](int s) {return s == 0; },
 		0,
 		[](int s, int c) {return 0; },
 		[](int s) {return false; }
 	);
-	testDFA(noStr, "No String", true,
+	testDFA(noStr, "No String", true, false,
 		{ {} },
 		{ { 0, 0, 0 }, { 1 }, { 1, 2, 3 }, { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, 1 } }
 		);
 	testWouldBeAccept(wouldBeAccept(noStr, zeroNineAlpha));
 	cout << endl;
 
-	// 2. DFA that only accepts empty string
+	// DFA that only accepts empty string
 	DFA<int, int>* onlyEmpty = new DFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1); },
 		0,
 		[](int s, int c) {
 			if (s == 0)
 				return 1;
-			else if (s == 1)
+			else
 				return 1;
 		},
 		[](int s) {return s == 0; }
 		);
-	testDFA(onlyEmpty, "Only Empty Str", false,
+	testDFA(onlyEmpty, "Only Empty Str", false, false,
 		{ { } },
 		{{ 0, 0, 0 }, { 1 }, { 1, 2, 3 }, { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, 1, 1, 1 }}
 		);
 	testWouldBeAccept(wouldBeAccept(onlyEmpty, zeroNineAlpha));
 	cout << endl;
 
-	// 3. DFA that only takes strings of even length
+	// DFA that only takes strings of even length
 	DFA<int, int>* onlyEven = new DFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1); },
 		0,
@@ -97,14 +99,14 @@ int main() {
 		},
 		[](int s) {return s == 0; }
 		);
-	testDFA(onlyEven, "Only Even", false,
+	testDFA(onlyEven, "Only Even", false, false,
 		{ { 0,1 }, { 0,0 }, { 1,1 }, { 1,2,3,4 }, { 1,2,3,4,5,6 }, { 1,1,1,1,1,1,1,1 } },
 		{ { 0,0,0 }, { 1 }, { 1,2,3 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
 		);
 	testWouldBeAccept(wouldBeAccept(onlyEven, zeroNineAlpha));
 	cout << endl;
 
-	// 4. DFA for strings of only zeros
+	// DFA for strings of only zeros
 	DFA<int, int>* onlyZeros = new DFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
 		0,
@@ -116,14 +118,14 @@ int main() {
 		},
 		[](int s) {return s == 1; }
 		);
-	testDFA(onlyZeros, "Only Zero's", false,
-		{ { 0 }, { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } },				//accepts
-		{ { }, { 1 }, { 0, 0, 0, 1 }, { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }	//does not accept
+	testDFA(onlyZeros, "Only Zero's", false, false,
+		{ { 0 }, { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } },//accepts
+		{ { }, { 1 }, { 0, 0, 0, 1 }, { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }//does not accept
 		);
 	testWouldBeAccept(wouldBeAccept(onlyZeros, zeroNineAlpha));
 	cout << endl;
 
-	// 5. DFA that only accepts the string of my name "CJ"
+	// DFA that only accepts the string of my name "CJ"
 	DFA<int, int>* myName = new DFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3); },
 		0,
@@ -137,16 +139,16 @@ int main() {
 		},
 		[](int s) {return s == 2; }
 		);
-	testDFA(myName, "My name", false,
+	testDFA(myName, "My name", false, false,
 		{ { 'C', 'J' }, { 67,74 } },	//accepts
-		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } } //does not accept
+		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } } 
 		);
 	testWouldBeAccept(wouldBeAccept(myName, englishAlpha));
 	cout << endl;
 
-	// 6. DFA that only accepts strings that are not my name
+	// DFA that only accepts strings that are not my name
 	DFA<int, int>* notMyName = new DFA<int, int>(
-		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3); },
 		0,
 		[](int s, int c) {
 			if ((c == 67) && (s == 0))
@@ -157,19 +159,21 @@ int main() {
 				return 2;
 			else if ((c != 74) && (s == 1))
 				return 0;
-			else if (s == 2)
-				return 0;
+			else if ((s == 2))
+				return 3;
+			else if(s == 3)
+				return 3;
 		},
-		[](int s) {return s == 0; }
+		[](int s) {return s == 0 || s == 1 || s == 3; }
 		);
-	testDFA(notMyName, "Not My Name", false, 	
+	testDFA(notMyName, "Not My Name", false, false,
 		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
 		{ { 'C', 'J' }, { 67,74 } }
 		);
 	testWouldBeAccept(wouldBeAccept(notMyName, englishAlpha));
 	cout << endl;
 
-	// 7. DFA that only reads a string that's a comment line
+	// DFA that only reads a string that's a comment line
 	DFA<int, int>* comments = new DFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3); },
 		0,
@@ -185,7 +189,7 @@ int main() {
 		},
 		[](int s) {return s == 2; }
 		);
-	testDFA(comments, "Comments", false,
+	testDFA(comments, "Comments", false, false,
 		{ { '/','/' }, { '/','/' , 'A'}, {'/','/','C', 'J'}, {'/','/', 'y','a'}, 
 			{'/', '/' , 'A', 'B', 'C' }, {'/','/', 5, 6, 'y'}},
 		{ { }, { '/', 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
@@ -193,7 +197,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(comments, englishAlpha));
 	cout << endl;
 
-	// 8. DFA that only takes strings with the sequence "01" anywehre in the string
+	// DFA that only takes strings with the sequence "01" anywehre in the string
 	// e.g. "00011111" accepts, "111100000" does not accept
 	DFA<int, int>* zeroOne = new DFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
@@ -212,18 +216,18 @@ int main() {
 		},
 		[](int s) {return s == 2; }
 		);
-	testDFA(zeroOne, "Zero One", false,
+	testDFA(zeroOne, "Zero One", false, false,
 		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 } },
-		{ { }, { 1 }, { 1,1,1,0 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
+		{ { }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }
 		);
 	testWouldBeAccept(wouldBeAccept(zeroOne, binaryAlpha));
 	cout << endl;
 
-	// 9. DFA representing a traffic light
-	//the states are green, yellow, and red
+	// DFA representing a traffic light
+	// the states are green, yellow, and red
 	// the characters are 0 and 1. 0 representing that the time has not elapsed for
-	//the light to change, and 1 representing that the time has elapsed for the light to change
-	//I'll say that the accept state is green. Theres also no start state, but I'll say its green so the DFA works
+	// the light to change, and 1 representing that the time has elapsed for the light to change
+	// I'll say that the accept state is green. Theres also no start state, but I'll say its green so the DFA works
 	DFA<int, int>* trafficLight = new DFA<int, int>(
 		[](int s) {return (s == 'G') || (s == 'Y') || (s == 'R'); },
 		'G',
@@ -243,14 +247,14 @@ int main() {
 		},
 		[](int s) {return false; }
 		);
-	testDFA(noStr, "Traffic Light", true,
+	testDFA(noStr, "Traffic Light", true, false,
 		{ { } },
 		{ { 0,0,0 }, { 1 }, { 1, 1, 1}, { 1, 0, 1, 0, 1 }, { 1, 1, 1, 0, 0, 0}, { 0, 0, 1, 1} }
 	);
 	testWouldBeAccept(wouldBeAccept(trafficLight, binaryAlpha));
 	cout << endl;
 
-	//10. argh
+	// argh
 	DFA<int, int>* ARGH = new DFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4) || (s == 5); },
 		0,
@@ -276,7 +280,7 @@ int main() {
 		},
 		[](int s) {return s == 4; }
 		);
-	testDFA(ARGH, "ARGH", false,
+	testDFA(ARGH, "ARGH", false, false,
 		{ { 'A','R','G','H' }, { 'A','R','R','G','H' }, { 'A','A','R','R','G','G','H','H' }, { 'A','R','G','G','H' },
 			{ 'A','R','G','H','H' }, { 'A','A','A','R','R','R','G','G','G','H','H','H' } },
 		{ { }, { 1 }, { 1,2,3,4,5 }, { 'A','R','G' }, { 'A','R','H','G' }, { 'O','K' } }
@@ -284,7 +288,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(ARGH, englishAlpha));
 	cout << endl;
 
-	//11. only accpets strings of signed binary numbers
+	// only accpets strings of signed binary numbers
 	DFA<int, int>* signedBinary = new DFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
 		0,
@@ -300,21 +304,123 @@ int main() {
 		},
 		[](int s) {return s == 1; }
 		);
-	testDFA(signedBinary, "Signed Binary", false,
+	testDFA(signedBinary, "Signed Binary", false, false,
 		{ { 1, 0 }, { 1,1,0 }, { 1,1,1,0 }, { 1,0,1,0,1,0 }, { 1,1,1,1,1,1 }, { 1,0,0,0,0,0 } },
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } }
 		);
 	testWouldBeAccept(wouldBeAccept(signedBinary, binaryAlpha));
 	cout << endl;
 
-	// 12. DFA that creates accepts exactly one character
+	// DFA that creates accepts exactly one character
 	list<int> str1 = { 1 };
 	DFA<int, int> *onlyCharDFA = onlyChar(1);
-	testDFA(onlyCharDFA, "Only Char", false,
+	testDFA(onlyCharDFA, "Only Char", false, false,
 		{ { 1 } },
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } }
 		);
 	testWouldBeAccept(wouldBeAccept(onlyCharDFA, binaryAlpha));
+	cout << endl;
+	/*
+		Task #13 - testing all DFAs that are complements 
+	*/
+	// ~noStr
+	DFA<int, int>* cNoStr = complement(*noStr, zeroNineAlpha);
+	testDFA(cNoStr, "~noStr", false, true,
+		{ { }, { 0, 0, 0 }, { 1 }, { 1, 2, 3, 4 }, { 3, 2, 1 }, { 1, 2, 3, 4, 5, 6, 7 } },
+		{ { } }
+	);
+	testWouldBeAccept(wouldBeAccept(cNoStr, zeroNineAlpha));
+	cout << endl;
+	// ~onlyEmpty
+	DFA<int, int>* cOnlyEmpty = complement(*onlyEmpty, zeroNineAlpha);
+	testDFA(cOnlyEmpty, "~onlyEmpty", false, false,
+		{ { 0, 0, 0 }, { 1 }, { 1, 2, 3, 4 }, { 3, 2, 1 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, } },
+		{ { } }
+	);
+	testWouldBeAccept(wouldBeAccept(cOnlyEmpty, zeroNineAlpha));
+	cout << endl;
+	//~onlyEven
+	DFA<int, int>* cOnlyEven = complement(*onlyEven, zeroNineAlpha);
+	testDFA(cOnlyEven, "~Only Even (odd)", false, false,
+		{ { 0,0,0 }, { 1 }, { 1,2,3 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
+		{ { 0,1 }, { 0,0 }, { 1,1 }, { 1,2,3,4 }, { 1,2,3,4,5,6 }, { 1,1,1,1,1,1,1,1 } }
+	);
+	testWouldBeAccept(wouldBeAccept(cOnlyEven, zeroNineAlpha));
+	cout << endl;
+	// ~onlyZeros
+	DFA<int, int>* cOnlyZeros = complement(*onlyZeros, zeroNineAlpha);
+	testDFA(cOnlyZeros, "~onlyZeros", false, false,
+		{ { }, { 1 }, { 0, 0, 0, 1 }, { 0, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 0, 0, 0, 0, 0, 0, 0, 0 } },
+		{ { 0 }, { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }				
+	);
+	testWouldBeAccept(wouldBeAccept(cOnlyZeros, zeroNineAlpha));
+	cout << endl;
+	// ~myName
+	DFA<int, int>* cMyName = complement(*myName, englishAlpha);
+	testDFA(cMyName, "~myName", false, false,
+		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
+		{ { 'C', 'J' }, { 67,74 } }
+	);
+	testWouldBeAccept(wouldBeAccept(cMyName, englishAlpha));
+	cout << endl;
+	// ~notMyName
+	DFA<int, int>* cNotMyName = complement(*notMyName, englishAlpha);
+	testDFA(cNotMyName, "~notMyName", false, false,
+		{ { 'C', 'J' }, { 67,74 } },
+		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
+	);
+	testWouldBeAccept(wouldBeAccept(cNotMyName, englishAlpha));
+	cout << endl;
+	// ~comments DFA
+	DFA<int, int>* cComments = complement(*comments, englishAlpha);
+	testDFA(cComments, "~comments", false, false,
+		{ { }, { '/', 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
+		{ { '/','/' }, { '/','/' , 'A'}, {'/','/','C', 'J'}, {'/','/', 'y','a'},
+			{'/', '/' , 'A', 'B', 'C' }, {'/','/', 5, 6, 'y'} }
+	);
+	testWouldBeAccept(wouldBeAccept(cComments, englishAlpha));
+	cout << endl;
+	// ~zerOne
+	DFA<int, int>* cZeroOne = complement(*zeroOne, binaryAlpha);
+	testDFA(cZeroOne, "~zeroOne", false, false,
+		{ { }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } },
+		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 } }
+	);
+	testWouldBeAccept(wouldBeAccept(cZeroOne, binaryAlpha));
+	cout << endl;
+	// ~trafficLight
+	DFA<int, int>* cTrafficLight = complement(*trafficLight, englishAlpha);
+	testDFA(cTrafficLight, "~trafficLight", false, true,
+		{ { 0,0,0 }, { 1 }, { 1, 1, 1}, { 1, 0, 1, 0, 1 }, { 1, 1, 1, 0, 0, 0}, { 0, 0, 1, 1} },
+		{ { } }
+	);
+	testWouldBeAccept(wouldBeAccept(cTrafficLight, englishAlpha));
+	cout << endl;
+	// ~ARGH
+	DFA<int, int>* cARGH = complement(*ARGH, englishAlpha);
+	testDFA(cARGH, "~ARGH", false, false,
+		{ { }, { 1 }, { 1,2,3,4,5 }, { 'A','R','G' }, { 'A','R','H','G' }, { 'O','K' } },
+		{ { 'A','R','G','H' }, { 'A','R','R','G','H' }, { 'A','A','R','R','G','G','H','H' }, { 'A','R','G','G','H' },
+			{ 'A','R','G','H','H' }, { 'A','A','A','R','R','R','G','G','G','H','H','H' } }
+	);
+	testWouldBeAccept(wouldBeAccept(cARGH, englishAlpha));
+	cout << endl;
+	// ~signedBinary
+	DFA<int, int>* cSignedBinary = complement(*signedBinary, binaryAlpha);
+	testDFA(cSignedBinary, "~signedBinary", false, false,
+		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } },
+		{ { 1, 0 }, { 1,1,0 }, { 1,1,1,0 }, { 1,0,1,0,1,0 }, { 1,1,1,1,1,1 }, { 1,0,0,0,0,0 } }
+	);
+	testWouldBeAccept(wouldBeAccept(cSignedBinary, binaryAlpha));
+	cout << endl;
+	// ~onlyChar
+	DFA<int, int>* cOnlyChar = complement(*onlyCharDFA, binaryAlpha);
+	testDFA(cOnlyChar, "~onlyChar", false, false,
+		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } },
+		{ { 1 } }
+	);
+	testWouldBeAccept(wouldBeAccept(cOnlyChar, binaryAlpha));
+	cout << endl;
 
 	return 0;
 }
@@ -453,7 +559,8 @@ void printConfigList(list<Config<int, list<int>>>& TL) {
 		cout << ' ';
 	}
 }
-void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, list<list<int>> accepts, list<list<int>> nAccepts) {
+void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, bool allAccepts,
+	list<list<int>> accepts, list<list<int>> nAccepts) {
 	int count = 0;
 	//nested for-loops for all the strings it should accept
 	if (!noAccepts) {
@@ -465,17 +572,21 @@ void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, list<list<int>>
 		}
 	}
 	//nested for-loops for all the strings it should NOT accept
-	for (auto i : nAccepts) {
-		if (dfa->accept(i)) {
-			cout << "\t\t" << DFAName << "-FAIL at index " << count << endl;
+	if (!allAccepts) {
+		for (auto i : nAccepts) {
+			if (dfa->accept(i)) {
+				cout << "\t\t" << DFAName << "-FAIL at index " << count << endl;
+			}
+			count++;
 		}
-		count++;
 	}
 	list<list<int>>::iterator t = accepts.begin();
 	list <Config<int, list<int>>> traceList = trace(dfa, *t);
 	cout << DFAName <<":" << endl;
 	printConfigList(traceList);
 	cout << endl;
+
+	
 }
 // Task #12
 pair<bool, list<int>> wouldBeAccept(DFA<int, int>* dfa, list<int> sigma) {
@@ -520,4 +631,14 @@ void testWouldBeAccept(pair<bool, list<int>> dfaPairStr) {
 		cout << "*** DFA accepts no strings! ***";
 	}
 	cout << endl;
+}
+// Task #13
+DFA<int, int> *complement(DFA<int, int> dfa, list<int> sigma) {
+	DFA<int, int> *cDFA = new DFA<int, int>(
+		dfa.Q,
+		dfa.q0,
+		dfa.d,
+		[dfa](int s) { return !dfa.F(s); }
+		);
+	return cDFA;
 }
