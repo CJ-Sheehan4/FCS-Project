@@ -5,9 +5,9 @@ using namespace std;
 
 //constructor
 template<typename State, typename C>
-DFA<State,C>::DFA(bool (*Q_ptr)(State), State initq0, 
+DFA<State,C>::DFA(function<bool(State)> initQ, State initq0,
 	function<State(State, C)> initD, function<bool(State)> initF) { 
-	Q = Q_ptr;
+	Q = initQ;
 	q0 = initq0;
 	d = initD;
 	F = initF;

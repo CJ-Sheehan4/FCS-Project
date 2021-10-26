@@ -5,15 +5,16 @@
 #include <utility>
 #include <optional>
 #include <algorithm>
+#include <typeinfo>
 #include "DFA.h"
 #include "DFA.cpp"
 
 using namespace std;
-template<typename State, typename Str>
+template<typename State>
 class Config {
 public:
 	Config() : curS(0), curStr({0}) {}
-	Config(State si, Str stri) : curS(si), curStr(stri) {}
+	Config(State si, list<int> stri) : curS(si), curStr(stri) {}
 	void printStr(void) {
 		for (auto i : curStr) {
 			cout << i;
@@ -21,23 +22,30 @@ public:
 	};
 	//public fields
 	State curS;
-	Str curStr;
+	list<int> curStr;
 };
 // function declarations
 list<list<int>> getLayer(list<int> sigma, int N);
 list<int> lexi(list<int> sigma, int N);
 void printLayer(list<list<int>> layer);
 void printElement(list<int> element);
-Config<int, list<int>> update(DFA<int, int> *dfa, Config<int, list<int>> cfg);
+template<typename State, typename C>
+Config<State> update(DFA<State, C> *dfa, Config<State> cfg);
 DFA<int, int> *onlyChar(int c);
-list<Config<int, list<int>>> trace(DFA<int, int>* dfa, list<int> str);
-void printConfigList(list<Config<int, list<int>>>& TL);
+template<typename State, typename C>
+list<Config<State>> trace(DFA<State, C>* dfa, list<int> str);
+template<typename State>
+void printConfigList(list<Config<State>>& TL);
+void printConfigList_pair(list<Config<pair<int, int>>>& TL);
 void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, bool allAccepts, 
 	list<list<int>> accepts, list<list<int>> nAccepts);
 pair<bool, list<int>> wouldBeAccept(DFA<int, int>*dfa, list<int> sigma);
 void testWouldBeAccept(pair<bool, list<int>> dfaPairStr);
-DFA<int, int> *complement(DFA<int, int> dfa, list<int> sigma);
-
+template<typename State, typename C>
+DFA<State, C>* complement(DFA<State, C> dfa);
+template<typename State, typename State2, typename C>
+DFA<pair<State, State2>, C>* unionDFA(DFA<State, C> A, DFA<State2, C> B);
+void testUnion(DFA<pair<int, int>, int>* dfa, list<list<int>> strL);
 int main() {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
 		'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
@@ -324,7 +332,7 @@ int main() {
 		Task #13 - testing all DFAs that are complements 
 	*/
 	// ~noStr
-	DFA<int, int>* cNoStr = complement(*noStr, zeroNineAlpha);
+	DFA<int, int>* cNoStr = complement(*noStr);
 	testDFA(cNoStr, "~noStr", false, true,
 		{ { }, { 0, 0, 0 }, { 1 }, { 1, 2, 3, 4 }, { 3, 2, 1 }, { 1, 2, 3, 4, 5, 6, 7 } },
 		{ { } }
@@ -332,7 +340,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cNoStr, zeroNineAlpha));
 	cout << endl;
 	// ~onlyEmpty
-	DFA<int, int>* cOnlyEmpty = complement(*onlyEmpty, zeroNineAlpha);
+	DFA<int, int>* cOnlyEmpty = complement(*onlyEmpty);
 	testDFA(cOnlyEmpty, "~onlyEmpty", false, false,
 		{ { 0, 0, 0 }, { 1 }, { 1, 2, 3, 4 }, { 3, 2, 1 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, } },
 		{ { } }
@@ -340,7 +348,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cOnlyEmpty, zeroNineAlpha));
 	cout << endl;
 	//~onlyEven
-	DFA<int, int>* cOnlyEven = complement(*onlyEven, zeroNineAlpha);
+	DFA<int, int>* cOnlyEven = complement(*onlyEven);
 	testDFA(cOnlyEven, "~Only Even (odd)", false, false,
 		{ { 0,0,0 }, { 1 }, { 1,2,3 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
 		{ { 0,1 }, { 0,0 }, { 1,1 }, { 1,2,3,4 }, { 1,2,3,4,5,6 }, { 1,1,1,1,1,1,1,1 } }
@@ -348,7 +356,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cOnlyEven, zeroNineAlpha));
 	cout << endl;
 	// ~onlyZeros
-	DFA<int, int>* cOnlyZeros = complement(*onlyZeros, zeroNineAlpha);
+	DFA<int, int>* cOnlyZeros = complement(*onlyZeros);
 	testDFA(cOnlyZeros, "~onlyZeros", false, false,
 		{ { }, { 1 }, { 0, 0, 0, 1 }, { 0, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 0, 0, 0, 0, 0, 0, 0, 0 } },
 		{ { 0 }, { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }				
@@ -356,7 +364,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cOnlyZeros, zeroNineAlpha));
 	cout << endl;
 	// ~myName
-	DFA<int, int>* cMyName = complement(*myName, englishAlpha);
+	DFA<int, int>* cMyName = complement(*myName);
 	testDFA(cMyName, "~myName", false, false,
 		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
 		{ { 'C', 'J' }, { 67,74 } }
@@ -364,7 +372,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cMyName, englishAlpha));
 	cout << endl;
 	// ~notMyName
-	DFA<int, int>* cNotMyName = complement(*notMyName, englishAlpha);
+	DFA<int, int>* cNotMyName = complement(*notMyName);
 	testDFA(cNotMyName, "~notMyName", false, false,
 		{ { 'C', 'J' }, { 67,74 } },
 		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
@@ -372,7 +380,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cNotMyName, englishAlpha));
 	cout << endl;
 	// ~comments DFA
-	DFA<int, int>* cComments = complement(*comments, englishAlpha);
+	DFA<int, int>* cComments = complement(*comments);
 	testDFA(cComments, "~comments", false, false,
 		{ { }, { '/', 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
 		{ { '/','/' }, { '/','/' , 'A'}, {'/','/','C', 'J'}, {'/','/', 'y','a'},
@@ -381,7 +389,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cComments, englishAlpha));
 	cout << endl;
 	// ~zerOne
-	DFA<int, int>* cZeroOne = complement(*zeroOne, binaryAlpha);
+	DFA<int, int>* cZeroOne = complement(*zeroOne);
 	testDFA(cZeroOne, "~zeroOne", false, false,
 		{ { }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } },
 		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 } }
@@ -389,7 +397,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cZeroOne, binaryAlpha));
 	cout << endl;
 	// ~trafficLight
-	DFA<int, int>* cTrafficLight = complement(*trafficLight, englishAlpha);
+	DFA<int, int>* cTrafficLight = complement(*trafficLight);
 	testDFA(cTrafficLight, "~trafficLight", false, true,
 		{ { 0,0,0 }, { 1 }, { 1, 1, 1}, { 1, 0, 1, 0, 1 }, { 1, 1, 1, 0, 0, 0}, { 0, 0, 1, 1} },
 		{ { } }
@@ -397,7 +405,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cTrafficLight, englishAlpha));
 	cout << endl;
 	// ~ARGH
-	DFA<int, int>* cARGH = complement(*ARGH, englishAlpha);
+	DFA<int, int>* cARGH = complement(*ARGH);
 	testDFA(cARGH, "~ARGH", false, false,
 		{ { }, { 1 }, { 1,2,3,4,5 }, { 'A','R','G' }, { 'A','R','H','G' }, { 'O','K' } },
 		{ { 'A','R','G','H' }, { 'A','R','R','G','H' }, { 'A','A','R','R','G','G','H','H' }, { 'A','R','G','G','H' },
@@ -406,7 +414,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cARGH, englishAlpha));
 	cout << endl;
 	// ~signedBinary
-	DFA<int, int>* cSignedBinary = complement(*signedBinary, binaryAlpha);
+	auto* cSignedBinary = complement(*signedBinary);
 	testDFA(cSignedBinary, "~signedBinary", false, false,
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } },
 		{ { 1, 0 }, { 1,1,0 }, { 1,1,1,0 }, { 1,0,1,0,1,0 }, { 1,1,1,1,1,1 }, { 1,0,0,0,0,0 } }
@@ -414,7 +422,7 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cSignedBinary, binaryAlpha));
 	cout << endl;
 	// ~onlyChar
-	DFA<int, int>* cOnlyChar = complement(*onlyCharDFA, binaryAlpha);
+	DFA<int, int>* cOnlyChar = complement(*onlyCharDFA);
 	testDFA(cOnlyChar, "~onlyChar", false, false,
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } },
 		{ { 1 } }
@@ -422,6 +430,21 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cOnlyChar, binaryAlpha));
 	cout << endl;
 
+	auto *u1 = unionDFA(*onlyZeros, *signedBinary);
+	list<int> u1Str = { 0, 1 };
+	if (!u1->accept(u1Str)) {
+		cout << "### FAIL1 ###" << endl;
+	}
+	list<Config<pair<int, int>>> confList_u1 = trace(u1, u1Str);
+	printConfigList_pair(confList_u1);
+	// (onlyZeros U signedBinary) U onlyEven
+	auto* u2 = unionDFA(*u1, *onlyEven);
+	if (!u2->accept(u1Str)) {
+		cout << "### FAIL2 ###" << endl;
+	}
+	
+	
+	cout << endl;
 	return 0;
 }
 list<list<int>> getLayer(list<int> sigma, int N) {
@@ -518,7 +541,8 @@ void printElement(list<int> element) {
 	}
 	cout << "}";
 }
-Config<int,list<int>> update(DFA<int, int> *dfa, Config<int, list<int>> cfg) {
+template<typename State, typename C>
+Config<State> update(DFA<State, C>* dfa, Config<State> cfg) {
 	list<int>::iterator i = cfg.curStr.begin();
 	cfg.curS = dfa->d(cfg.curS, *i);
 	cfg.curStr.pop_front();
@@ -540,22 +564,35 @@ DFA<int, int> *onlyChar(int c) {
 	return onlyCharDFA;
 }
 //Task #11 - a function that returns a list of configurations that a DFA visits
-list<Config<int,list<int>>> trace(DFA<int, int> *dfa, list<int> str) {
-	Config<int, list<int>> c(dfa->q0, str);
-	list<Config<int, list<int>>> lc;
-	lc.push_back(c);
-	while (c.curStr.size() != 0) {
-		c = update(dfa, c);
-		lc.push_back(c);
+template<typename State, typename C>
+list<Config<State>> trace(DFA<State, C> *dfa, list<int> str) {
+	Config<State> config(dfa->q0, str);
+	list<Config<State>> lc;
+	lc.push_back(config);
+	while (config.curStr.size() != 0) {
+		config = update(dfa, config);
+		lc.push_back(config);
 	}
 	return lc;
 }
-void printConfigList(list<Config<int, list<int>>>& TL) {
-	list<Config<int, list<int>>>::iterator it;
-	list<int>::iterator j_It;
-	for (it = TL.begin(); it != TL.end(); it++) {
-		cout << '[' << it->curS << ']';
-		it->printStr();
+template<typename State>
+void printConfigList(list<Config<State>>& TL) {
+	if (typeid(State) == typeid(int)) {
+		list<Config<int>>::iterator j;
+		for (j = TL.begin(); j != TL.end(); j++) {
+			cout << '[';
+			cout << j->curS;
+			cout << ']';
+			j->printStr();
+			cout << ' ';
+		}
+	}
+}
+void printConfigList_pair(list<Config<pair<int, int>>>& TL) {
+	list<Config<pair<int, int>>>::iterator i;
+	for (i = TL.begin(); i != TL.end(); i++) {
+		cout << '[' << i->curS.first << ", " << i->curS.second << ']';
+		i->printStr();
 		cout << ' ';
 	}
 }
@@ -581,7 +618,7 @@ void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, bool allAccepts
 		}
 	}
 	list<list<int>>::iterator t = accepts.begin();
-	list <Config<int, list<int>>> traceList = trace(dfa, *t);
+	list <Config<int>> traceList = trace(dfa, *t);
 	cout << DFAName <<":" << endl;
 	printConfigList(traceList);
 	cout << endl;
@@ -592,7 +629,7 @@ void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, bool allAccepts
 pair<bool, list<int>> wouldBeAccept(DFA<int, int>* dfa, list<int> sigma) {
 	pair<bool, list<int>> ret;
 	ret.first = false;
-	list<Config<int, list<int>>> h = { Config<int, list<int>>(dfa->q0, {}) };
+	list<Config<int>> h = { Config<int>(dfa->q0, {}) };
 	list<int> v = {dfa->q0};
 	int qi, qj;
 	list<int> w;
@@ -611,7 +648,7 @@ pair<bool, list<int>> wouldBeAccept(DFA<int, int>* dfa, list<int> sigma) {
 			if (found == v.end()) {
 				v.push_back(qj);
 				w.push_back(i);
-				h.push_back(Config<int, list<int>>(qj, w));
+				h.push_back(Config<int>(qj, w));
 				w.pop_back();
 			}
 		}
@@ -632,13 +669,33 @@ void testWouldBeAccept(pair<bool, list<int>> dfaPairStr) {
 	}
 	cout << endl;
 }
-// Task #13
-DFA<int, int> *complement(DFA<int, int> dfa, list<int> sigma) {
+// Task #13 - complement
+template<typename State, typename C>
+DFA<State, C> *complement(DFA<State, C> dfa) {
 	DFA<int, int> *cDFA = new DFA<int, int>(
 		dfa.Q,
 		dfa.q0,
 		dfa.d,
-		[dfa](int s) { return !dfa.F(s); }
+		[=](int s) { return !dfa.F(s); }
 		);
 	return cDFA;
+}
+// Task #14 - union
+template<typename State, typename State2, typename C>
+DFA<pair<State, State2>, C>* unionDFA(DFA<State, C> A, DFA<State2, C> B) {
+	DFA<pair<State, State2>, C>* uDFA = new DFA<pair<State, State2>, C>(
+		[=](pair<State, State2> s) { return A.Q(s.first) && B.Q(s.second); },
+		pair<State, State2>(A.q0, B.q0),
+		[=](pair<State, State2> s, C c) {
+			return pair<State, State2>(A.d(s.first, c), B.d(s.second, c));
+		},
+		[=](pair<State, State2> s) {
+			return (A.F(s.first) && B.Q(s.second)) || A.Q(s.first) && (B.F(s.second));
+		}
+		);
+	return uDFA;
+}
+//unfinished Task #15
+void testUnion(DFA<pair<int,int>, int>*dfa, list<list<int>> strL) {
+
 }
