@@ -45,7 +45,9 @@ template<typename State, typename C>
 DFA<State, C>* complement(DFA<State, C> dfa);
 template<typename State, typename State2, typename C>
 DFA<pair<State, State2>, C>* unionDFA(DFA<State, C> A, DFA<State2, C> B);
-void testUnion(DFA<pair<int, int>, int>* dfa, list<list<int>> strL);
+template<typename State1, typename State2, typename C>
+void testUnion(DFA<pair<State1, State2>, C>* dfa, string DFAName, bool noAccepts, bool allAccepts, 
+	list<list<int>> strL);
 int main() {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
 		'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
@@ -72,7 +74,7 @@ int main() {
 	testDFA(noStr, "No String", true, false,
 		{ {} },
 		{ { 0, 0, 0 }, { 1 }, { 1, 2, 3 }, { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, 1 } }
-		);
+	);
 	testWouldBeAccept(wouldBeAccept(noStr, zeroNineAlpha));
 	cout << endl;
 
@@ -90,8 +92,8 @@ int main() {
 		);
 	testDFA(onlyEmpty, "Only Empty Str", false, false,
 		{ { } },
-		{{ 0, 0, 0 }, { 1 }, { 1, 2, 3 }, { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, 1, 1, 1 }}
-		);
+		{ { 0, 0, 0 }, { 1 }, { 1, 2, 3 }, { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, 1, 1, 1 } }
+	);
 	testWouldBeAccept(wouldBeAccept(onlyEmpty, zeroNineAlpha));
 	cout << endl;
 
@@ -110,7 +112,7 @@ int main() {
 	testDFA(onlyEven, "Only Even", false, false,
 		{ { 0,1 }, { 0,0 }, { 1,1 }, { 1,2,3,4 }, { 1,2,3,4,5,6 }, { 1,1,1,1,1,1,1,1 } },
 		{ { 0,0,0 }, { 1 }, { 1,2,3 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
-		);
+	);
 	testWouldBeAccept(wouldBeAccept(onlyEven, zeroNineAlpha));
 	cout << endl;
 
@@ -129,7 +131,7 @@ int main() {
 	testDFA(onlyZeros, "Only Zero's", false, false,
 		{ { 0 }, { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } },//accepts
 		{ { }, { 1 }, { 0, 0, 0, 1 }, { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }//does not accept
-		);
+	);
 	testWouldBeAccept(wouldBeAccept(onlyZeros, zeroNineAlpha));
 	cout << endl;
 
@@ -149,8 +151,8 @@ int main() {
 		);
 	testDFA(myName, "My name", false, false,
 		{ { 'C', 'J' }, { 67,74 } },	//accepts
-		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } } 
-		);
+		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
+	);
 	testWouldBeAccept(wouldBeAccept(myName, englishAlpha));
 	cout << endl;
 
@@ -169,7 +171,7 @@ int main() {
 				return 0;
 			else if ((s == 2))
 				return 3;
-			else if(s == 3)
+			else if (s == 3)
 				return 3;
 		},
 		[](int s) {return s == 0 || s == 1 || s == 3; }
@@ -177,7 +179,7 @@ int main() {
 	testDFA(notMyName, "Not My Name", false, false,
 		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
 		{ { 'C', 'J' }, { 67,74 } }
-		);
+	);
 	testWouldBeAccept(wouldBeAccept(notMyName, englishAlpha));
 	cout << endl;
 
@@ -198,10 +200,10 @@ int main() {
 		[](int s) {return s == 2; }
 		);
 	testDFA(comments, "Comments", false, false,
-		{ { '/','/' }, { '/','/' , 'A'}, {'/','/','C', 'J'}, {'/','/', 'y','a'}, 
-			{'/', '/' , 'A', 'B', 'C' }, {'/','/', 5, 6, 'y'}},
+		{ { '/','/' }, { '/','/' , 'A'}, {'/','/','C', 'J'}, {'/','/', 'y','a'},
+			{'/', '/' , 'A', 'B', 'C' }, {'/','/', 5, 6, 'y'} },
 		{ { }, { '/', 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
-		);
+	);
 	testWouldBeAccept(wouldBeAccept(comments, englishAlpha));
 	cout << endl;
 
@@ -227,7 +229,7 @@ int main() {
 	testDFA(zeroOne, "Zero One", false, false,
 		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 } },
 		{ { }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }
-		);
+	);
 	testWouldBeAccept(wouldBeAccept(zeroOne, binaryAlpha));
 	cout << endl;
 
@@ -269,7 +271,7 @@ int main() {
 		[](int s, int c) {
 			if (s == 0 && c == 65) // 65 = A
 				return 1;
-			else if (s == 1 && c == 65) 
+			else if (s == 1 && c == 65)
 				return 1;
 			else if (s == 1 && c == 82) // 82 = R
 				return 2;
@@ -292,7 +294,7 @@ int main() {
 		{ { 'A','R','G','H' }, { 'A','R','R','G','H' }, { 'A','A','R','R','G','G','H','H' }, { 'A','R','G','G','H' },
 			{ 'A','R','G','H','H' }, { 'A','A','A','R','R','R','G','G','G','H','H','H' } },
 		{ { }, { 1 }, { 1,2,3,4,5 }, { 'A','R','G' }, { 'A','R','H','G' }, { 'O','K' } }
-		);
+	);
 	testWouldBeAccept(wouldBeAccept(ARGH, englishAlpha));
 	cout << endl;
 
@@ -315,21 +317,21 @@ int main() {
 	testDFA(signedBinary, "Signed Binary", false, false,
 		{ { 1, 0 }, { 1,1,0 }, { 1,1,1,0 }, { 1,0,1,0,1,0 }, { 1,1,1,1,1,1 }, { 1,0,0,0,0,0 } },
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } }
-		);
+	);
 	testWouldBeAccept(wouldBeAccept(signedBinary, binaryAlpha));
 	cout << endl;
 
 	// DFA that creates accepts exactly one character
 	list<int> str1 = { 1 };
-	DFA<int, int> *onlyCharDFA = onlyChar(1);
+	DFA<int, int>* onlyCharDFA = onlyChar(1);
 	testDFA(onlyCharDFA, "Only Char", false, false,
 		{ { 1 } },
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } }
-		);
+	);
 	testWouldBeAccept(wouldBeAccept(onlyCharDFA, binaryAlpha));
 	cout << endl;
 	/*
-		Task #13 - testing all DFAs that are complements 
+		Task #13 - testing all DFAs that are complements
 	*/
 	// ~noStr
 	DFA<int, int>* cNoStr = complement(*noStr);
@@ -359,7 +361,7 @@ int main() {
 	DFA<int, int>* cOnlyZeros = complement(*onlyZeros);
 	testDFA(cOnlyZeros, "~onlyZeros", false, false,
 		{ { }, { 1 }, { 0, 0, 0, 1 }, { 0, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 0, 0, 0, 0, 0, 0, 0, 0 } },
-		{ { 0 }, { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }				
+		{ { 0 }, { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }
 	);
 	testWouldBeAccept(wouldBeAccept(cOnlyZeros, zeroNineAlpha));
 	cout << endl;
@@ -429,20 +431,70 @@ int main() {
 	);
 	testWouldBeAccept(wouldBeAccept(cOnlyChar, binaryAlpha));
 	cout << endl;
+	/*
+		Task #15 - testing the union function
+	*/
+	auto* onlyZeros_U_signedBinary = unionDFA(*onlyZeros, *signedBinary);
+	auto* threeDFAUnion = unionDFA(*onlyZeros_U_signedBinary, *onlyEven);
+	auto* comments_U_myName = unionDFA(*myName, *comments);
+	auto* myName_U_onlyEmpty = unionDFA(*myName, *onlyEmpty);
+	auto* noStr_U_notMyName = unionDFA(*noStr, *notMyName);
+	auto* zeroOne_U_trafficLight = unionDFA(*zeroOne, *trafficLight);
+	auto* ARGH_U_signedBinary = unionDFA(*ARGH, *signedBinary);
+	auto* zeroOne_U_zeroOne = unionDFA(*zeroOne, *zeroOne);
+	auto* comments_U_onlyCharDFA = unionDFA(*comments, *onlyCharDFA);
+	auto* myName_U_cMyName = unionDFA(*myName, *cMyName);
+	auto* ARGH_U_myName = unionDFA(*ARGH, *myName);
+	auto* cZeroOne_U_cOnlyEven = unionDFA(*cZeroOne, *cOnlyEven);
 
-	auto *u1 = unionDFA(*onlyZeros, *signedBinary);
-	list<int> u1Str = { 0, 1 };
-	if (!u1->accept(u1Str)) {
-		cout << "### FAIL1 ###" << endl;
-	}
-	list<Config<pair<int, int>>> confList_u1 = trace(u1, u1Str);
-	printConfigList_pair(confList_u1);
-	// (onlyZeros U signedBinary) U onlyEven
-	auto* u2 = unionDFA(*u1, *onlyEven);
-	if (!u2->accept(u1Str)) {
-		cout << "### FAIL2 ###" << endl;
-	}
-	
+	testUnion(onlyZeros_U_signedBinary, "onlyZeros_U_signedBinary", false, false,
+		{ {0}, {1}, {1,0}, {0,0,0}, {1,0,0}, {0,0,0,0}, {0,1}, {0,0,0,1}, {0,1,0}, {0,1,1,1}, {2}, {0,1,1,0} }
+	);
+	testUnion(threeDFAUnion, "(onlyZeros U signedBinary) U onlyEven", false, false,
+		{ {0}, {1}, {1,0}, {0,0,0}, {1,1,1}, {0,1}, {0,1,1}, {0,1,1}, {0,1,0}, {0,1,1,1,0}, {2}, {0,1,1,0,0} }
+	);
+	testUnion(comments_U_myName, "comments_U_myName", false, false,
+		{ {'/','/',0}, {'C','J'}, {'/','/','C','J'}, { 67,74 }, {'/','/'}, {'/','/', 'y','a'},
+		{'/',1,1}, {0,1,1}, {0,1,0}, {0,1,1,1,0}, {2}, {'/',0,1,1,0} }
+	);
+	testUnion(myName_U_onlyEmpty, "myName_U_onlyEmpty", false, false,
+		{ {}, {'C','J'}, { 67,74 }, {}, {'C','J'}, { 67,74 },
+		{'/',1,1}, {0,1,1}, {0,1,0}, {0,1,1,1,0}, {2}, {'/',0,1,1,0} }
+	);
+	testUnion(noStr_U_notMyName, "noStr_U_notMyName", false, false,
+		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 },
+		{'C','J'},{ 67,74 },{'C','J'},{ 67,74 },{'C','J'},{ 67,74 } }
+	);
+	testUnion(zeroOne_U_trafficLight, "zeroOne_U_trafficLight", false, false,
+		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 },
+		{ }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }
+	);
+	testUnion(ARGH_U_signedBinary, "ARGH_U_signedBinary", false, false,
+		{ { 'A','R','G','H' }, { 'A','R','R','G','H' }, { 'A','A','R','R','G','G','H','H' },
+		{ 1, 0 }, { 1,1,0 }, { 1,1,1,0 },
+		{ }, { 'A','R','G' }, { 'A','R','H','G' }, { 0,1 }, { 0,0,0,1 },{0} }
+	);
+	testUnion(zeroOne_U_zeroOne, "zeroOne_U_zeroOne", false, false,
+		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 },
+		{ }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }
+	);
+	testUnion(comments_U_onlyCharDFA, "comments_U_onlyCharDFA", false, false,
+		{ {'/','/',0}, {'/','/','C','J'}, {1}, {'/','/'}, {'/','/', 'y','a'}, {'/','/','o','k'},
+		{'/',1,1}, { }, {0,1,0}, {0,1,1,1,0}, {2}, {'/',0,1,1,0} }
+	);
+	testUnion(myName_U_cMyName, "myName_U_cMyName", false, true,
+		{ { 'C', 'J' }, { 67,74 } ,{'/','/'}, {1}, {0,0,0,1}, {1,2,3,4,5},
+		{},{}, {}, {}, {}, {} }
+	);
+	testUnion(ARGH_U_myName, "ARGH_U_myName", false, false,
+		{ { 'C', 'J' }, { 67,74 }, { 'A','R','G','H' }, { 'A','R','R','G','H' },
+			{ 'A','A','R','R','G','G','H','H' }, { 'A','R','R','G','H' },
+		 {'/','/'},{1}, {0,0,0,1}, {1,2,3,4,5}, {2}, {'/',0,1,1,0} }
+	);
+	testUnion(cZeroOne_U_cOnlyEven, "cZeroOne_U_cOnlyEven", false, false,
+		{ { }, { 1 }, { 1,1,1,0 }, { 0,0,0 }, { 1 }, { 1,2,3 },
+		{ 0, 1 }, { 0,0,1 }, { }, { 0,1,0,0 }, { 0,1,0 }, { 1,1 }}
+	);
 	
 	cout << endl;
 	return 0;
@@ -695,7 +747,27 @@ DFA<pair<State, State2>, C>* unionDFA(DFA<State, C> A, DFA<State2, C> B) {
 		);
 	return uDFA;
 }
-//unfinished Task #15
-void testUnion(DFA<pair<int,int>, int>*dfa, list<list<int>> strL) {
+//Task #15
+template<typename State1, typename State2, typename C>
+void testUnion(DFA<pair<State1,State2>, C>*dfa, string DFAName, bool noAccepts, bool allAccepts, 
+	list<list<int>> strL) {
+	int count = 0;
+	for (auto i : strL) {
+		if (!allAccepts) {
+			if (count > 5) {
+				if (dfa->accept(i)) {
+					cout << "\t\t" << DFAName << "### FAIL at index " << count << endl;
+				}
+			}
+		}
+		if (!noAccepts) {
+			if (count <= 5) {
+				if (!dfa->accept(i)) {
+					cout << "\t\t" << DFAName << "### FAIL at index " << count << endl;
+				}
 
+			}
+		}
+		count++;
+	}
 }
