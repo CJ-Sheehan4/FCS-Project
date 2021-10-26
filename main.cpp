@@ -48,7 +48,9 @@ DFA<pair<State, State2>, C>* unionDFA(DFA<State, C> A, DFA<State2, C> B);
 template<typename State1, typename State2, typename C>
 void testUnion(DFA<pair<State1, State2>, C>* dfa, string DFAName, bool noAccepts, bool allAccepts, 
 	list<list<int>> strL);
-int main() {
+template<typename State, typename State2, typename C>
+DFA<pair<State, State2>, C>* intersect(DFA<State, C> A, DFA<State2, C> B);
+int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
 		'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
 	list<int> binaryAlpha = { 0, 1 };
@@ -221,7 +223,9 @@ int main() {
 				return 1;
 			else if ((c == 1) && (s == 1))
 				return 2;
-			else if (s == 2)
+			else if ((c == 1) && (s == 2))
+				return 2;
+			else if ((c == 0) && (s == 2))
 				return 2;
 		},
 		[](int s) {return s == 2; }
@@ -309,7 +313,7 @@ int main() {
 				return 2;
 			else if (s == 1)
 				return 1;
-			else if (s == 2)
+			else
 				return 2;
 		},
 		[](int s) {return s == 1; }
@@ -432,9 +436,12 @@ int main() {
 	testWouldBeAccept(wouldBeAccept(cOnlyChar, binaryAlpha));
 	cout << endl;
 	/*
-		Task #15 - testing the union function
+		Task #15- testing the union function
 	*/
 	auto* onlyZeros_U_signedBinary = unionDFA(*onlyZeros, *signedBinary);
+	if (!onlyZeros_U_signedBinary->Q(pair<int, int>(2,1))) {
+		cout << "\t\t" << "### FAIL Q###" << endl;
+	}
 	auto* threeDFAUnion = unionDFA(*onlyZeros_U_signedBinary, *onlyEven);
 	auto* comments_U_myName = unionDFA(*myName, *comments);
 	auto* myName_U_onlyEmpty = unionDFA(*myName, *onlyEmpty);
@@ -493,12 +500,89 @@ int main() {
 	);
 	testUnion(cZeroOne_U_cOnlyEven, "cZeroOne_U_cOnlyEven", false, false,
 		{ { }, { 1 }, { 1,1,1,0 }, { 0,0,0 }, { 1 }, { 1,2,3 },
-		{ 0, 1 }, { 0,0,1 }, { }, { 0,1,0,0 }, { 0,1,0 }, { 1,1 }}
+		{ 0, 1 }, { 0, 0,0, 1 }, {1,1,0,1}, { 0,1,0,0 }, {0,1,1,1 }, {0,0,0,0,0,1 } }
 	);
-	
+	/*
+		Tasks #17 - INTERSECT TESTS
+	*/
+	auto* onlyZeros_INT_signedBinary = intersect(*onlyZeros, *signedBinary);
+	if (!onlyZeros_INT_signedBinary->Q(pair<int, int>(2, 1))) {
+		cout << "\t\t" << "### FAIL Q###" << endl;
+	}
+	auto* zeroOne_INT_signed = intersect(*zeroOne, *signedBinary);
+	auto* threeDFAINT = intersect(*zeroOne_INT_signed, *onlyEven);
+	auto* myName_INT_onlyEmpty = intersect(*myName, *onlyEmpty);
+	auto* noStr_INT_notMyName = intersect(*noStr, *notMyName);
+	auto* zeroOne_INT_trafficLight = intersect(*zeroOne, *trafficLight);
+	auto* ARGH_INT_signedBinary = intersect(*ARGH, *signedBinary);
+	auto* zeroOne_INT_zeroOne = intersect(*zeroOne, *zeroOne);
+	auto* comments_INT_onlyCharDFA = intersect(*comments, *onlyCharDFA);
+	auto* myName_INT_cMyName = intersect(*myName, *cMyName);
+	auto* ARGH_INT_myName = intersect(*ARGH, *myName);
+	auto* cZeroOne_INT_cOnlyEven = intersect(*cZeroOne, *cOnlyEven);
+	// accepts no str
+	testUnion(onlyZeros_INT_signedBinary, "onlyZeros_INT_signedBinary", true, false,
+		{ {0}, {1}, {1,0}, {0,0,0}, {1,0,0}, {0,0,0,0}, {0,1}, {0,0,0,1}, {0,1,0}, {0,1,1,1}, {2}, {0,1,1,0} }
+	);
+	testUnion(zeroOne_INT_signed, "zeroOne_INT_signed", false, false,
+		{ {1,0,1}, {1,0,0,0,1}, {1,0,1,1,1}, {1,0,1,0,1,0}, {1,0,1,0,0,0}, {1,0,1,1,1,0,1,0,0},
+		{1,0}, {0,1}, {0,0,1,1,0}, {1,1,1}, {1,1,1,0,0,0}, {0,1,0,1,1,1} }
+	);
+	testUnion(threeDFAINT, "(zeroOne ^ signedBinary) ^ onlyEven", false, false,
+		{ {1,0,1,1}, {1,0,1,0}, {1,0,1,0,1,0}, {1,1,1,1,0,1}, {1,1,1,1,1,1,0,1}, {1,0,0,0,0,1},
+		{0,1}, {1,1}, {1,0,1}, {2}, {0,1,1,0,1,1} }
+	);
+	// accepts no str
+	testUnion(myName_INT_onlyEmpty, "myName_INT_onlyEmpty", true, false,
+		{ {}, {'C','J'}, { 67,74 }, {}, {'C','J'}, { 67,74 },
+		{'/',1,1}, {0,1,1}, {0,1,0}, {0,1,1,1,0}, {2}, {'/',0,1,1,0} }
+	);
+	// accepts no str
+	testUnion(noStr_INT_notMyName, "noStr_INT_notMyName", true, false,
+		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 },
+		{'C','J'},{ 67,74 },{'C','J'},{ 67,74 },{'C','J'},{ 67,74 } }
+	);
+	// accepts no str
+	testUnion(zeroOne_INT_trafficLight, "zeroOne_INT_trafficLight", true, false,
+		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 },
+		{ }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }
+	);
+	// accepts no str
+	testUnion(ARGH_INT_signedBinary, "ARGH_INT_signedBinary", true, false,
+		{ { 'A','R','G','H' }, { 'A','R','R','G','H' }, { 'A','A','R','R','G','G','H','H' },
+		{ 1, 0 }, { 1,1,0 }, { 1,1,1,0 },
+		{ }, { 'A','R','G' }, { 'A','R','H','G' }, { 0,1 }, { 0,0,0,1 },{0} }
+	);
+	testUnion(zeroOne_INT_zeroOne, "zeroOne_INT_zeroOne", false, true,
+		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 },
+		{ }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }
+	);
+	// accepts no str
+	testUnion(comments_INT_onlyCharDFA, "comments_INT_onlyCharDFA", true, false,
+		{ {'/','/',0}, {'/','/','C','J'}, {1}, {'/','/'}, {'/','/', 'y','a'}, {'/','/','o','k'},
+		{'/',1,1}, { }, {0,1,0}, {0,1,1,1,0}, {2}, {'/',0,1,1,0} }
+	);
+	// accepts no str
+	testUnion(myName_INT_cMyName, "myName_INT_cMyName", true, false,
+		{ { 'C', 'J' }, { 67,74 } ,{'/','/'}, {1}, {0,0,0,1}, {1,2,3,4,5},
+		{},{}, {}, {}, {}, {} }
+	);
+	// accepts no str
+	testUnion(ARGH_INT_myName, "ARGH_INT_myName", true, false,
+		{ { 'C', 'J' }, { 67,74 }, { 'A','R','G','H' }, { 'A','R','R','G','H' },
+			{ 'A','A','R','R','G','G','H','H' }, { 'A','R','R','G','H' },
+		 {'/','/'},{1}, {0,0,0,1}, {1,2,3,4,5}, {2}, {'/',0,1,1,0} }
+	);
+	testUnion(cZeroOne_INT_cOnlyEven, "cZeroOne_INT_cOnlyEven", false, false,
+		{ { 1 }, { 1,0,0 }, { 0,0,0 }, { 1,1,1,0,0 }, { 1,2,3 },{ 1,1,1 },
+		{ 0, 1 }, { 0,0,1 }, { }, { 0,1,0,0 }, { 0,1,0 }, { 1,1 } }
+	);
 	cout << endl;
 	return 0;
 }
+/*
+	******** FUNCTION DEFINITIONS **********
+*/
 list<list<int>> getLayer(list<int> sigma, int N) {
 	list<int>::iterator i;
 	list<list<int>>::iterator j;
@@ -770,4 +854,18 @@ void testUnion(DFA<pair<State1,State2>, C>*dfa, string DFAName, bool noAccepts, 
 		}
 		count++;
 	}
+}// Task # 16 - intersect
+template<typename State, typename State2, typename C>
+DFA<pair<State, State2>, C>* intersect(DFA<State, C> A, DFA<State2, C> B) {
+	DFA<pair<State, State2>, C>* uDFA = new DFA<pair<State, State2>, C>(
+		[=](pair<State, State2> s) { return A.Q(s.first) && B.Q(s.second); },
+		pair<State, State2>(A.q0, B.q0),
+		[=](pair<State, State2> s, C c) {
+			return pair<State, State2>(A.d(s.first, c), B.d(s.second, c));
+		},
+		[=](pair<State, State2> s) {
+			return A.F(s.first) && B.F(s.second);
+		}
+		);
+	return uDFA;
 }
