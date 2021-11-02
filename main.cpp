@@ -39,17 +39,23 @@ void printConfigList(list<Config<State>>& TL);
 void printConfigList_pair(list<Config<pair<int, int>>>& TL);
 void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, bool allAccepts, 
 	list<list<int>> accepts, list<list<int>> nAccepts);
-pair<bool, list<int>> wouldBeAccept(DFA<int, int>*dfa, list<int> sigma);
+template<typename State, typename C>
+pair<bool, list<int>> wouldBeAccept(DFA<State, C>* dfa, list<int> sigma);
 void testWouldBeAccept(pair<bool, list<int>> dfaPairStr);
 template<typename State, typename C>
-DFA<State, C>* complement(DFA<State, C> dfa);
+DFA<State, C>* complement(DFA<State, C> *dfa);
 template<typename State, typename State2, typename C>
-DFA<pair<State, State2>, C>* unionDFA(DFA<State, C> A, DFA<State2, C> B);
+DFA<pair<State, State2>, C>* unionDFA(DFA<State, C> *A, DFA<State2, C> *B);
 template<typename State1, typename State2, typename C>
-void testUnion(DFA<pair<State1, State2>, C>* dfa, string DFAName, bool noAccepts, bool allAccepts, 
+void testUandInter(DFA<pair<State1, State2>, C>* dfa, string DFAName, bool noAccepts, bool allAccepts, 
 	list<list<int>> strL);
 template<typename State, typename State2, typename C>
-DFA<pair<State, State2>, C>* intersect(DFA<State, C> A, DFA<State2, C> B);
+DFA<pair<State, State2>, C>* intersect(DFA<State, C> *A, DFA<State2, C> *B);
+template<typename State1, typename State2, typename C>
+bool subset(DFA<State1, C> *X, DFA<State2, C> *Y, list<int> sigma);
+template<typename State1, typename State2, typename C>
+void testSubset(DFA<State1, C>* X, DFA<State2, C>* Y, bool answer, string name, list<int> sigma);
+
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
 		'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
@@ -338,7 +344,7 @@ int main(void) {
 		Task #13 - testing all DFAs that are complements
 	*/
 	// ~noStr
-	DFA<int, int>* cNoStr = complement(*noStr);
+	DFA<int, int>* cNoStr = complement(noStr);
 	testDFA(cNoStr, "~noStr", false, true,
 		{ { }, { 0, 0, 0 }, { 1 }, { 1, 2, 3, 4 }, { 3, 2, 1 }, { 1, 2, 3, 4, 5, 6, 7 } },
 		{ { } }
@@ -346,7 +352,7 @@ int main(void) {
 	testWouldBeAccept(wouldBeAccept(cNoStr, zeroNineAlpha));
 	cout << endl;
 	// ~onlyEmpty
-	DFA<int, int>* cOnlyEmpty = complement(*onlyEmpty);
+	DFA<int, int>* cOnlyEmpty = complement(onlyEmpty);
 	testDFA(cOnlyEmpty, "~onlyEmpty", false, false,
 		{ { 0, 0, 0 }, { 1 }, { 1, 2, 3, 4 }, { 3, 2, 1 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 1, 1, 1, 1, } },
 		{ { } }
@@ -354,7 +360,7 @@ int main(void) {
 	testWouldBeAccept(wouldBeAccept(cOnlyEmpty, zeroNineAlpha));
 	cout << endl;
 	//~onlyEven
-	DFA<int, int>* cOnlyEven = complement(*onlyEven);
+	DFA<int, int>* cOnlyEven = complement(onlyEven);
 	testDFA(cOnlyEven, "~Only Even (odd)", false, false,
 		{ { 0,0,0 }, { 1 }, { 1,2,3 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
 		{ { 0,1 }, { 0,0 }, { 1,1 }, { 1,2,3,4 }, { 1,2,3,4,5,6 }, { 1,1,1,1,1,1,1,1 } }
@@ -362,7 +368,7 @@ int main(void) {
 	testWouldBeAccept(wouldBeAccept(cOnlyEven, zeroNineAlpha));
 	cout << endl;
 	// ~onlyZeros
-	DFA<int, int>* cOnlyZeros = complement(*onlyZeros);
+	DFA<int, int>* cOnlyZeros = complement(onlyZeros);
 	testDFA(cOnlyZeros, "~onlyZeros", false, false,
 		{ { }, { 1 }, { 0, 0, 0, 1 }, { 0, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6, 7 }, { 1, 0, 0, 0, 0, 0, 0, 0, 0 } },
 		{ { 0 }, { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }
@@ -370,7 +376,7 @@ int main(void) {
 	testWouldBeAccept(wouldBeAccept(cOnlyZeros, zeroNineAlpha));
 	cout << endl;
 	// ~myName
-	DFA<int, int>* cMyName = complement(*myName);
+	DFA<int, int>* cMyName = complement(myName);
 	testDFA(cMyName, "~myName", false, false,
 		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
 		{ { 'C', 'J' }, { 67,74 } }
@@ -378,7 +384,7 @@ int main(void) {
 	testWouldBeAccept(wouldBeAccept(cMyName, englishAlpha));
 	cout << endl;
 	// ~notMyName
-	DFA<int, int>* cNotMyName = complement(*notMyName);
+	DFA<int, int>* cNotMyName = complement(notMyName);
 	testDFA(cNotMyName, "~notMyName", false, false,
 		{ { 'C', 'J' }, { 67,74 } },
 		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } }
@@ -386,7 +392,7 @@ int main(void) {
 	testWouldBeAccept(wouldBeAccept(cNotMyName, englishAlpha));
 	cout << endl;
 	// ~comments DFA
-	DFA<int, int>* cComments = complement(*comments);
+	DFA<int, int>* cComments = complement(comments);
 	testDFA(cComments, "~comments", false, false,
 		{ { }, { '/', 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 } },
 		{ { '/','/' }, { '/','/' , 'A'}, {'/','/','C', 'J'}, {'/','/', 'y','a'},
@@ -395,7 +401,7 @@ int main(void) {
 	testWouldBeAccept(wouldBeAccept(cComments, englishAlpha));
 	cout << endl;
 	// ~zerOne
-	DFA<int, int>* cZeroOne = complement(*zeroOne);
+	DFA<int, int>* cZeroOne = complement(zeroOne);
 	testDFA(cZeroOne, "~zeroOne", false, false,
 		{ { }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } },
 		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 } }
@@ -403,7 +409,7 @@ int main(void) {
 	testWouldBeAccept(wouldBeAccept(cZeroOne, binaryAlpha));
 	cout << endl;
 	// ~trafficLight
-	DFA<int, int>* cTrafficLight = complement(*trafficLight);
+	DFA<int, int>* cTrafficLight = complement(trafficLight);
 	testDFA(cTrafficLight, "~trafficLight", false, true,
 		{ { 0,0,0 }, { 1 }, { 1, 1, 1}, { 1, 0, 1, 0, 1 }, { 1, 1, 1, 0, 0, 0}, { 0, 0, 1, 1} },
 		{ { } }
@@ -411,7 +417,7 @@ int main(void) {
 	testWouldBeAccept(wouldBeAccept(cTrafficLight, englishAlpha));
 	cout << endl;
 	// ~ARGH
-	DFA<int, int>* cARGH = complement(*ARGH);
+	DFA<int, int>* cARGH = complement(ARGH);
 	testDFA(cARGH, "~ARGH", false, false,
 		{ { }, { 1 }, { 1,2,3,4,5 }, { 'A','R','G' }, { 'A','R','H','G' }, { 'O','K' } },
 		{ { 'A','R','G','H' }, { 'A','R','R','G','H' }, { 'A','A','R','R','G','G','H','H' }, { 'A','R','G','G','H' },
@@ -420,7 +426,7 @@ int main(void) {
 	testWouldBeAccept(wouldBeAccept(cARGH, englishAlpha));
 	cout << endl;
 	// ~signedBinary
-	auto* cSignedBinary = complement(*signedBinary);
+	auto* cSignedBinary = complement(signedBinary);
 	testDFA(cSignedBinary, "~signedBinary", false, false,
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } },
 		{ { 1, 0 }, { 1,1,0 }, { 1,1,1,0 }, { 1,0,1,0,1,0 }, { 1,1,1,1,1,1 }, { 1,0,0,0,0,0 } }
@@ -428,7 +434,7 @@ int main(void) {
 	testWouldBeAccept(wouldBeAccept(cSignedBinary, binaryAlpha));
 	cout << endl;
 	// ~onlyChar
-	DFA<int, int>* cOnlyChar = complement(*onlyCharDFA);
+	DFA<int, int>* cOnlyChar = complement(onlyCharDFA);
 	testDFA(cOnlyChar, "~onlyChar", false, false,
 		{ { }, { 0,1 }, { 0,0,0,1 }, { 0,1,1,1,1,1,1,1 }, { 0,1,0,0,0,0,0,0 }, { 0,0,1,1,1,0,0 } },
 		{ { 1 } }
@@ -438,145 +444,166 @@ int main(void) {
 	/*
 		Task #15- testing the union function
 	*/
-	auto* onlyZeros_U_signedBinary = unionDFA(*onlyZeros, *signedBinary);
+	auto* onlyZeros_U_signedBinary = unionDFA(onlyZeros, signedBinary);
 	if (!onlyZeros_U_signedBinary->Q(pair<int, int>(2,1))) {
 		cout << "\t\t" << "### FAIL Q###" << endl;
 	}
-	auto* threeDFAUnion = unionDFA(*onlyZeros_U_signedBinary, *onlyEven);
-	auto* comments_U_myName = unionDFA(*myName, *comments);
-	auto* myName_U_onlyEmpty = unionDFA(*myName, *onlyEmpty);
-	auto* noStr_U_notMyName = unionDFA(*noStr, *notMyName);
-	auto* zeroOne_U_trafficLight = unionDFA(*zeroOne, *trafficLight);
-	auto* ARGH_U_signedBinary = unionDFA(*ARGH, *signedBinary);
-	auto* zeroOne_U_zeroOne = unionDFA(*zeroOne, *zeroOne);
-	auto* comments_U_onlyCharDFA = unionDFA(*comments, *onlyCharDFA);
-	auto* myName_U_cMyName = unionDFA(*myName, *cMyName);
-	auto* ARGH_U_myName = unionDFA(*ARGH, *myName);
-	auto* cZeroOne_U_cOnlyEven = unionDFA(*cZeroOne, *cOnlyEven);
-
-	testUnion(onlyZeros_U_signedBinary, "onlyZeros_U_signedBinary", false, false,
+	auto* threeDFAUnion = unionDFA(onlyZeros_U_signedBinary, onlyEven);
+	auto* comments_U_myName = unionDFA(myName, comments);
+	auto* myName_U_onlyEmpty = unionDFA(myName, onlyEmpty);
+	auto* noStr_U_notMyName = unionDFA(noStr, notMyName);
+	auto* zeroOne_U_trafficLight = unionDFA(zeroOne, trafficLight);
+	auto* ARGH_U_signedBinary = unionDFA(ARGH, signedBinary);
+	auto* zeroOne_U_zeroOne = unionDFA(zeroOne, zeroOne);
+	auto* comments_U_onlyCharDFA = unionDFA(comments, onlyCharDFA);
+	auto* myName_U_cMyName = unionDFA(myName, cMyName);
+	auto* ARGH_U_myName = unionDFA(ARGH, myName);
+	auto* cZeroOne_U_cOnlyEven = unionDFA(cZeroOne, cOnlyEven);
+	auto* fourUDFA = unionDFA(threeDFAUnion, myName);
+	testUandInter(onlyZeros_U_signedBinary, "onlyZeros_U_signedBinary", false, false,
 		{ {0}, {1}, {1,0}, {0,0,0}, {1,0,0}, {0,0,0,0}, {0,1}, {0,0,0,1}, {0,1,0}, {0,1,1,1}, {2}, {0,1,1,0} }
 	);
-	testUnion(threeDFAUnion, "(onlyZeros U signedBinary) U onlyEven", false, false,
+	testUandInter(threeDFAUnion, "(onlyZeros U signedBinary) U onlyEven", false, false,
 		{ {0}, {1}, {1,0}, {0,0,0}, {1,1,1}, {0,1}, {0,1,1}, {0,1,1}, {0,1,0}, {0,1,1,1,0}, {2}, {0,1,1,0,0} }
 	);
-	testUnion(comments_U_myName, "comments_U_myName", false, false,
+	testUandInter(fourUDFA, "fourUDFA", false, false,
+		{ {0}, {1}, {1,0}, {'C','J'}, {2,2}, {0,1}, {0,1,1}, {0,1,1}, {0,1,0}, {0,1,1,1,0}}
+	);
+	testUandInter(comments_U_myName, "comments_U_myName", false, false,
 		{ {'/','/',0}, {'C','J'}, {'/','/','C','J'}, { 67,74 }, {'/','/'}, {'/','/', 'y','a'},
 		{'/',1,1}, {0,1,1}, {0,1,0}, {0,1,1,1,0}, {2}, {'/',0,1,1,0} }
 	);
-	testUnion(myName_U_onlyEmpty, "myName_U_onlyEmpty", false, false,
+	testUandInter(myName_U_onlyEmpty, "myName_U_onlyEmpty", false, false,
 		{ {}, {'C','J'}, { 67,74 }, {}, {'C','J'}, { 67,74 },
 		{'/',1,1}, {0,1,1}, {0,1,0}, {0,1,1,1,0}, {2}, {'/',0,1,1,0} }
 	);
-	testUnion(noStr_U_notMyName, "noStr_U_notMyName", false, false,
+	testUandInter(noStr_U_notMyName, "noStr_U_notMyName", false, false,
 		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 },
 		{'C','J'},{ 67,74 },{'C','J'},{ 67,74 },{'C','J'},{ 67,74 } }
 	);
-	testUnion(zeroOne_U_trafficLight, "zeroOne_U_trafficLight", false, false,
+	testUandInter(zeroOne_U_trafficLight, "zeroOne_U_trafficLight", false, false,
 		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 },
 		{ }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }
 	);
-	testUnion(ARGH_U_signedBinary, "ARGH_U_signedBinary", false, false,
+	testUandInter(ARGH_U_signedBinary, "ARGH_U_signedBinary", false, false,
 		{ { 'A','R','G','H' }, { 'A','R','R','G','H' }, { 'A','A','R','R','G','G','H','H' },
 		{ 1, 0 }, { 1,1,0 }, { 1,1,1,0 },
-		{ }, { 'A','R','G' }, { 'A','R','H','G' }, { 0,1 }, { 0,0,0,1 },{0} }
+		{ }, { 'A','R','G' }, { 'A','R','H','G' }, { 0,1 }, { 0,0,0,1 }, {0} }
 	);
-	testUnion(zeroOne_U_zeroOne, "zeroOne_U_zeroOne", false, false,
+	testUandInter(zeroOne_U_zeroOne, "zeroOne_U_zeroOne", false, false,
 		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 },
 		{ }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }
 	);
-	testUnion(comments_U_onlyCharDFA, "comments_U_onlyCharDFA", false, false,
+	testUandInter(comments_U_onlyCharDFA, "comments_U_onlyCharDFA", false, false,
 		{ {'/','/',0}, {'/','/','C','J'}, {1}, {'/','/'}, {'/','/', 'y','a'}, {'/','/','o','k'},
 		{'/',1,1}, { }, {0,1,0}, {0,1,1,1,0}, {2}, {'/',0,1,1,0} }
 	);
-	testUnion(myName_U_cMyName, "myName_U_cMyName", false, true,
+	testUandInter(myName_U_cMyName, "myName_U_cMyName", false, true,
 		{ { 'C', 'J' }, { 67,74 } ,{'/','/'}, {1}, {0,0,0,1}, {1,2,3,4,5},
 		{},{}, {}, {}, {}, {} }
 	);
-	testUnion(ARGH_U_myName, "ARGH_U_myName", false, false,
+	testUandInter(ARGH_U_myName, "ARGH_U_myName", false, false,
 		{ { 'C', 'J' }, { 67,74 }, { 'A','R','G','H' }, { 'A','R','R','G','H' },
 			{ 'A','A','R','R','G','G','H','H' }, { 'A','R','R','G','H' },
 		 {'/','/'},{1}, {0,0,0,1}, {1,2,3,4,5}, {2}, {'/',0,1,1,0} }
 	);
-	testUnion(cZeroOne_U_cOnlyEven, "cZeroOne_U_cOnlyEven", false, false,
+	testUandInter(cZeroOne_U_cOnlyEven, "cZeroOne_U_cOnlyEven", false, false,
 		{ { }, { 1 }, { 1,1,1,0 }, { 0,0,0 }, { 1 }, { 1,2,3 },
 		{ 0, 1 }, { 0, 0,0, 1 }, {1,1,0,1}, { 0,1,0,0 }, {0,1,1,1 }, {0,0,0,0,0,1 } }
 	);
 	/*
 		Tasks #17 - INTERSECT TESTS
 	*/
-	auto* onlyZeros_INT_signedBinary = intersect(*onlyZeros, *signedBinary);
+	auto* onlyZeros_INT_signedBinary = intersect(onlyZeros, signedBinary);
 	if (!onlyZeros_INT_signedBinary->Q(pair<int, int>(2, 1))) {
 		cout << "\t\t" << "### FAIL Q###" << endl;
 	}
-	auto* zeroOne_INT_signed = intersect(*zeroOne, *signedBinary);
-	auto* threeDFAINT = intersect(*zeroOne_INT_signed, *onlyEven);
-	auto* myName_INT_onlyEmpty = intersect(*myName, *onlyEmpty);
-	auto* noStr_INT_notMyName = intersect(*noStr, *notMyName);
-	auto* zeroOne_INT_trafficLight = intersect(*zeroOne, *trafficLight);
-	auto* ARGH_INT_signedBinary = intersect(*ARGH, *signedBinary);
-	auto* zeroOne_INT_zeroOne = intersect(*zeroOne, *zeroOne);
-	auto* comments_INT_onlyCharDFA = intersect(*comments, *onlyCharDFA);
-	auto* myName_INT_cMyName = intersect(*myName, *cMyName);
-	auto* ARGH_INT_myName = intersect(*ARGH, *myName);
-	auto* cZeroOne_INT_cOnlyEven = intersect(*cZeroOne, *cOnlyEven);
+	auto* zeroOne_INT_signed = intersect(zeroOne, signedBinary);
+	auto* threeDFAINT = intersect(zeroOne_INT_signed, onlyEven);
+	auto* myName_INT_onlyEmpty = intersect(myName, onlyEmpty);
+	auto* noStr_INT_notMyName = intersect(noStr, notMyName);
+	auto* zeroOne_INT_trafficLight = intersect(zeroOne, trafficLight);
+	auto* ARGH_INT_signedBinary = intersect(ARGH, signedBinary);
+	auto* zeroOne_INT_zeroOne = intersect(zeroOne, zeroOne);
+	auto* comments_INT_onlyCharDFA = intersect(comments, onlyCharDFA);
+	auto* myName_INT_cMyName = intersect(myName, cMyName);
+	auto* ARGH_INT_myName = intersect(ARGH, myName);
+	auto* cZeroOne_INT_cOnlyEven = intersect(cZeroOne, cOnlyEven);
 	// accepts no str
-	testUnion(onlyZeros_INT_signedBinary, "onlyZeros_INT_signedBinary", true, false,
+	testUandInter(onlyZeros_INT_signedBinary, "onlyZeros_INT_signedBinary", true, false,
 		{ {0}, {1}, {1,0}, {0,0,0}, {1,0,0}, {0,0,0,0}, {0,1}, {0,0,0,1}, {0,1,0}, {0,1,1,1}, {2}, {0,1,1,0} }
 	);
-	testUnion(zeroOne_INT_signed, "zeroOne_INT_signed", false, false,
+	testUandInter(zeroOne_INT_signed, "zeroOne_INT_signed", false, false,
 		{ {1,0,1}, {1,0,0,0,1}, {1,0,1,1,1}, {1,0,1,0,1,0}, {1,0,1,0,0,0}, {1,0,1,1,1,0,1,0,0},
 		{1,0}, {0,1}, {0,0,1,1,0}, {1,1,1}, {1,1,1,0,0,0}, {0,1,0,1,1,1} }
 	);
-	testUnion(threeDFAINT, "(zeroOne ^ signedBinary) ^ onlyEven", false, false,
+	testUandInter(threeDFAINT, "(zeroOne ^ signedBinary) ^ onlyEven", false, false,
 		{ {1,0,1,1}, {1,0,1,0}, {1,0,1,0,1,0}, {1,1,1,1,0,1}, {1,1,1,1,1,1,0,1}, {1,0,0,0,0,1},
 		{0,1}, {1,1}, {1,0,1}, {2}, {0,1,1,0,1,1} }
 	);
 	// accepts no str
-	testUnion(myName_INT_onlyEmpty, "myName_INT_onlyEmpty", true, false,
+	testUandInter(myName_INT_onlyEmpty, "myName_INT_onlyEmpty", true, false,
 		{ {}, {'C','J'}, { 67,74 }, {}, {'C','J'}, { 67,74 },
 		{'/',1,1}, {0,1,1}, {0,1,0}, {0,1,1,1,0}, {2}, {'/',0,1,1,0} }
 	);
 	// accepts no str
-	testUnion(noStr_INT_notMyName, "noStr_INT_notMyName", true, false,
+	testUandInter(noStr_INT_notMyName, "noStr_INT_notMyName", true, false,
 		{ { }, { 1 }, { 0,0,0,1 }, { 1,2,3,4,5 }, { 1,2,3,4,5,6,7 }, { 1,1,1,1,1,1,1,1,1 },
 		{'C','J'},{ 67,74 },{'C','J'},{ 67,74 },{'C','J'},{ 67,74 } }
 	);
 	// accepts no str
-	testUnion(zeroOne_INT_trafficLight, "zeroOne_INT_trafficLight", true, false,
+	testUandInter(zeroOne_INT_trafficLight, "zeroOne_INT_trafficLight", true, false,
 		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 },
 		{ }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }
 	);
 	// accepts no str
-	testUnion(ARGH_INT_signedBinary, "ARGH_INT_signedBinary", true, false,
+	testUandInter(ARGH_INT_signedBinary, "ARGH_INT_signedBinary", true, false,
 		{ { 'A','R','G','H' }, { 'A','R','R','G','H' }, { 'A','A','R','R','G','G','H','H' },
 		{ 1, 0 }, { 1,1,0 }, { 1,1,1,0 },
 		{ }, { 'A','R','G' }, { 'A','R','H','G' }, { 0,1 }, { 0,0,0,1 },{0} }
 	);
-	testUnion(zeroOne_INT_zeroOne, "zeroOne_INT_zeroOne", false, true,
+	testUandInter(zeroOne_INT_zeroOne, "zeroOne_INT_zeroOne", false, true,
 		{ { 0, 1 }, { 0,0,1,0 }, { 0,1,0,0,0,0,0 }, { 1,1,1,1,1,1,0,1 }, { 0,0,0,1,1,1,1,1 }, { 1,1,1,1,1,0,1,1,1 },
 		{ }, { 1 }, { 1,1,1,0 }, { 1, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1, 1 } }
 	);
 	// accepts no str
-	testUnion(comments_INT_onlyCharDFA, "comments_INT_onlyCharDFA", true, false,
+	testUandInter(comments_INT_onlyCharDFA, "comments_INT_onlyCharDFA", true, false,
 		{ {'/','/',0}, {'/','/','C','J'}, {1}, {'/','/'}, {'/','/', 'y','a'}, {'/','/','o','k'},
 		{'/',1,1}, { }, {0,1,0}, {0,1,1,1,0}, {2}, {'/',0,1,1,0} }
 	);
 	// accepts no str
-	testUnion(myName_INT_cMyName, "myName_INT_cMyName", true, false,
+	testUandInter(myName_INT_cMyName, "myName_INT_cMyName", true, false,
 		{ { 'C', 'J' }, { 67,74 } ,{'/','/'}, {1}, {0,0,0,1}, {1,2,3,4,5},
 		{},{}, {}, {}, {}, {} }
 	);
 	// accepts no str
-	testUnion(ARGH_INT_myName, "ARGH_INT_myName", true, false,
+	testUandInter(ARGH_INT_myName, "ARGH_INT_myName", true, false,
 		{ { 'C', 'J' }, { 67,74 }, { 'A','R','G','H' }, { 'A','R','R','G','H' },
 			{ 'A','A','R','R','G','G','H','H' }, { 'A','R','R','G','H' },
 		 {'/','/'},{1}, {0,0,0,1}, {1,2,3,4,5}, {2}, {'/',0,1,1,0} }
 	);
-	testUnion(cZeroOne_INT_cOnlyEven, "cZeroOne_INT_cOnlyEven", false, false,
+	testUandInter(cZeroOne_INT_cOnlyEven, "cZeroOne_INT_cOnlyEven", false, false,
 		{ { 1 }, { 1,0,0 }, { 0,0,0 }, { 1,1,1,0,0 }, { 1,2,3 },{ 1,1,1 },
 		{ 0, 1 }, { 0,0,1 }, { }, { 0,1,0,0 }, { 0,1,0 }, { 1,1 } }
 	);
+	cout << endl;
+	/*
+		TASK #19 - Write a dozen tests for your subset function.
+	*/
+	testSubset(myName, cNotMyName, true, "myName subset of cNotMyName", englishAlpha);
+	testSubset(onlyEmpty, onlyEven, true, "onlyEmpty subset of onlyEven", binaryAlpha);
+	testSubset(onlyCharDFA, cOnlyEven, true, "onlyCharDFA subset of cOnlyEven", binaryAlpha);
+	testSubset(trafficLight, noStr, true, "trafficLight subset of noStr", binaryAlpha);
+	testSubset(signedBinary, cOnlyZeros, true, "signedBinary subset of cOnlyZeros", binaryAlpha);
+	testSubset(myName, comments_U_myName, true, "myName subset of comments_U_myName", englishAlpha);
+	testSubset(ARGH, ARGH_U_signedBinary, true, "ARGH subset of ARGH_U_signedBinary", englishAlpha);
+	testSubset(onlyEven, onlyZeros, false, "onlyEven subset of onlyZeros", binaryAlpha);
+	testSubset(cOnlyEmpty, onlyEven, false, "cOnlyEmpty subset of onlyEven", binaryAlpha);
+	testSubset(onlyCharDFA, onlyEven, false, "onlyCharDFA subset of onlyEven", binaryAlpha);
+	testSubset(myName_U_onlyEmpty, comments_U_myName, false, "myNameUonlyEmpty, commentsUmyName", englishAlpha);
+	testSubset(cZeroOne_INT_cOnlyEven, cSignedBinary, false, "cZeroOneINTcOnlyEven, cSignedBinary", binaryAlpha);
+	testSubset(onlyEmpty, myName, false, "onlyEmpty subset of myName", englishAlpha);
+	
 	cout << endl;
 	return 0;
 }
@@ -762,29 +789,30 @@ void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, bool allAccepts
 	
 }
 // Task #12
-pair<bool, list<int>> wouldBeAccept(DFA<int, int>* dfa, list<int> sigma) {
+template<typename State, typename C>
+pair<bool, list<int>> wouldBeAccept(DFA<State, C>* dfa, list<int> sigma) {
 	pair<bool, list<int>> ret;
 	ret.first = false;
-	list<Config<int>> h = { Config<int>(dfa->q0, {}) };
-	list<int> v = {dfa->q0};
-	int qi, qj;
-	list<int> w;
+	list<Config<State>> h = { Config<State>(dfa->q0, {}) };
+	list<State> v = {dfa->q0};
+	State qi, qj;
+	list<int> w; //Str
 	while (!h.empty()) {
 		qi = h.front().curS;
 		w = h.front().curStr;
 		h.pop_front();
-		if (dfa->F(qi)) {
+		if (dfa->F(qi)) { // if you've reached a state that accepts, return that string
 			ret.first = true;
 			ret.second = w;
 			break;
 		}
 		for (auto i : sigma) {
-			qj = dfa->d(qi, i);
-			auto found = find(v.begin(), v.end(), qj);
-			if (found == v.end()) {
+			qj = dfa->d(qi, i); // get the next state
+			auto found = find(v.begin(), v.end(), qj); // find algorithm
+			if (found == v.end()) {	// if its wasnt found, push into visited  
 				v.push_back(qj);
 				w.push_back(i);
-				h.push_back(Config<int>(qj, w));
+				h.push_back(Config<State>(qj, w));
 				w.pop_back();
 			}
 		}
@@ -807,33 +835,33 @@ void testWouldBeAccept(pair<bool, list<int>> dfaPairStr) {
 }
 // Task #13 - complement
 template<typename State, typename C>
-DFA<State, C> *complement(DFA<State, C> dfa) {
-	DFA<int, int> *cDFA = new DFA<int, int>(
-		dfa.Q,
-		dfa.q0,
-		dfa.d,
-		[=](int s) { return !dfa.F(s); }
+DFA<State, C> *complement(DFA<State, C> *dfa) {
+	DFA<State, C> *cDFA = new DFA<State, C>(
+		dfa->Q,
+		dfa->q0,
+		dfa->d,
+		[=](State s) { return !dfa->F(s); }
 		);
 	return cDFA;
 }
 // Task #14 - union
 template<typename State, typename State2, typename C>
-DFA<pair<State, State2>, C>* unionDFA(DFA<State, C> A, DFA<State2, C> B) {
+DFA<pair<State, State2>, C>* unionDFA(DFA<State, C> *A, DFA<State2, C> *B) {
 	DFA<pair<State, State2>, C>* uDFA = new DFA<pair<State, State2>, C>(
-		[=](pair<State, State2> s) { return A.Q(s.first) && B.Q(s.second); },
-		pair<State, State2>(A.q0, B.q0),
+		[=](pair<State, State2> s) { return A->Q(s.first) && B->Q(s.second); },
+		pair<State, State2>(A->q0, B->q0),
 		[=](pair<State, State2> s, C c) {
-			return pair<State, State2>(A.d(s.first, c), B.d(s.second, c));
+			return pair<State, State2>(A->d(s.first, c), B->d(s.second, c));
 		},
 		[=](pair<State, State2> s) {
-			return (A.F(s.first) && B.Q(s.second)) || A.Q(s.first) && (B.F(s.second));
+			return (A->F(s.first) && B->Q(s.second)) || A->Q(s.first) && (B->F(s.second));
 		}
 		);
 	return uDFA;
 }
 //Task #15
 template<typename State1, typename State2, typename C>
-void testUnion(DFA<pair<State1,State2>, C>*dfa, string DFAName, bool noAccepts, bool allAccepts, 
+void testUandInter(DFA<pair<State1,State2>, C>*dfa, string DFAName, bool noAccepts, bool allAccepts, 
 	list<list<int>> strL) {
 	int count = 0;
 	for (auto i : strL) {
@@ -856,16 +884,36 @@ void testUnion(DFA<pair<State1,State2>, C>*dfa, string DFAName, bool noAccepts, 
 	}
 }// Task # 16 - intersect
 template<typename State, typename State2, typename C>
-DFA<pair<State, State2>, C>* intersect(DFA<State, C> A, DFA<State2, C> B) {
+DFA<pair<State, State2>, C>* intersect(DFA<State, C> *A, DFA<State2, C> *B) {
 	DFA<pair<State, State2>, C>* uDFA = new DFA<pair<State, State2>, C>(
-		[=](pair<State, State2> s) { return A.Q(s.first) && B.Q(s.second); },
-		pair<State, State2>(A.q0, B.q0),
+		[=](pair<State, State2> s) { return A->Q(s.first) && B->Q(s.second); },
+		pair<State, State2>(A->q0, B->q0),
 		[=](pair<State, State2> s, C c) {
-			return pair<State, State2>(A.d(s.first, c), B.d(s.second, c));
+			return pair<State, State2>(A->d(s.first, c), B->d(s.second, c));
 		},
 		[=](pair<State, State2> s) {
-			return A.F(s.first) && B.F(s.second);
+			return A->F(s.first) && B->F(s.second);
 		}
 		);
 	return uDFA;
+}
+/*
+Task # 18
+(Subset) Write a function which takes two DFAs (X and Y) and returns 
+whether every string accepted by X is also accepted by Y.
+*/
+template<typename State1, typename State2, typename C>
+bool subset(DFA<State1, C> *X, DFA<State2, C> *Y, list<int> sigma) {
+	if (wouldBeAccept(intersect(complement(Y), X), sigma).first) {
+		return false;
+	}
+	return true;
+}
+
+template<typename State1, typename State2, typename C>
+void testSubset(DFA<State1, C>* X, DFA<State2, C>* Y, bool answer, string name, list<int> sigma) {
+	
+	if (!(subset(X, Y, sigma) == answer)) {
+		cout << endl << "### FAIL: " << name << " ###" << endl;
+	}
 }
