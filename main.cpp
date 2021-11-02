@@ -55,6 +55,8 @@ template<typename State1, typename State2, typename C>
 bool subset(DFA<State1, C> *X, DFA<State2, C> *Y, list<int> sigma);
 template<typename State1, typename State2, typename C>
 void testSubset(DFA<State1, C>* X, DFA<State2, C>* Y, bool answer, string name, list<int> sigma);
+template<typename State1, typename State2, typename C>
+bool equality(DFA<State1, C>* X, DFA<State2, C>* Y, list<int> sigma);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -603,7 +605,13 @@ int main(void) {
 	testSubset(myName_U_onlyEmpty, comments_U_myName, false, "myNameUonlyEmpty, commentsUmyName", englishAlpha);
 	testSubset(cZeroOne_INT_cOnlyEven, cSignedBinary, false, "cZeroOneINTcOnlyEven, cSignedBinary", binaryAlpha);
 	testSubset(onlyEmpty, myName, false, "onlyEmpty subset of myName", englishAlpha);
-	
+	/*
+	* UNFINISHED
+		TASK #21 - Write a dozen tests for your equality function.
+	*/
+	if (!equality(onlyEven, onlyEven, binaryAlpha)) {
+		cout << "### FAIL ###";
+	}
 	cout << endl;
 	return 0;
 }
@@ -912,8 +920,16 @@ bool subset(DFA<State1, C> *X, DFA<State2, C> *Y, list<int> sigma) {
 
 template<typename State1, typename State2, typename C>
 void testSubset(DFA<State1, C>* X, DFA<State2, C>* Y, bool answer, string name, list<int> sigma) {
-	
 	if (!(subset(X, Y, sigma) == answer)) {
 		cout << endl << "### FAIL: " << name << " ###" << endl;
 	}
+}
+/*Task #20 - (Equality) Write a function which takes two DFAs (X and Y) and returns 
+whether every string accepted by X is also accepted by Y and vice versa.*/
+template<typename State1, typename State2, typename C>
+bool equality(DFA<State1, C>* X, DFA<State2, C>* Y, list<int> sigma) {
+	if (subset(X, Y, sigma) && subset(Y, X, sigma)) {
+		return true;
+	}
+	return false;
 }
