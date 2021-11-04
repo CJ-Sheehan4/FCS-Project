@@ -57,6 +57,8 @@ template<typename State1, typename State2, typename C>
 void testSubset(DFA<State1, C>* X, DFA<State2, C>* Y, bool answer, string name, list<int> sigma);
 template<typename State1, typename State2, typename C>
 bool equality(DFA<State1, C>* X, DFA<State2, C>* Y, list<int> sigma);
+template<typename State1, typename State2, typename C>
+void testEquality(DFA<State1, C>* X, DFA<State2, C>* Y, bool answer, string name, list<int> sigma);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -606,17 +608,173 @@ int main(void) {
 	testSubset(cZeroOne_INT_cOnlyEven, cSignedBinary, false, "cZeroOneINTcOnlyEven, cSignedBinary", binaryAlpha);
 	testSubset(onlyEmpty, myName, false, "onlyEmpty subset of myName", englishAlpha);
 	/*
-	* UNFINISHED
 		TASK #21 - Write a dozen tests for your equality function.
 	*/
-	if (!equality(onlyEven, onlyEven, binaryAlpha)) {
-		cout << "### FAIL ###";
-	}
+
+	/*
+		7 cases that are true, L(DFA_a) == L(DFA_b)
+	*/ 
+	// onlyEven == onlyEven: testing a case that should obviously be true
+	testEquality(onlyEven, onlyEven, true, "onlyEven != onlyEven", binaryAlpha);
+	// trafficLight == noStr: although they are difined differently, both DFAs accept no str
+	testEquality(trafficLight, noStr, true, "trafficLight != noStr", binaryAlpha);
+	// onlyEven and onlyEven2: They are equal under the binary alphabet, but not the English alphabet
+	// because onlyEven2 is defined to only move a state when there is a character of either 1 or 0
+	DFA<int, int>* onlyEven2 = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && (c == 0 || c == 1))
+				return 1;
+			else if (s == 1 && (c == 0 || c == 1))
+				return 0;
+			else
+				return 0;
+		},
+		[](int s) {return s == 0; }
+		);
+	testEquality(onlyEven, onlyEven2, true, "onlyEven != onlyEven2", binaryAlpha);
+	// onlyEmpty == onlyEmpty2: the DFA's are defined differently, however, accept the same L
+	DFA<int, int>* onlyEmpty2 = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1); },
+		0,
+		[](int s, int c) {
+			return 1;
+		},
+		[](int s) {return s == 0; }
+		);
+	testEquality(onlyEmpty, onlyEmpty2, true, "onlyEmpty != onlyEmpty2", binaryAlpha);
+	// onlyEmpty == onlyEmpty2: These DFA's accept any L due to it not caring 
+	// as to what the alphabet is.
+	testEquality(onlyEmpty, onlyEmpty2, true, "onlyEmpty != onlyEmpty2", englishAlpha);
+	//myName == myName2: I used a different start state, and different states, 
+	// but its essentially the same DFA just reversed. You could also think of it as
+	// the same direction but the states are named differently
+	DFA<int, int>* myName2 = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
+		3,
+		[](int s, int c) {
+			if ((c == 67) && (s == 3))
+				return 2;
+			else if ((c == 74) && (s == 2))
+				return 1;
+			else
+				return 0;
+		},
+		[](int s) {return s == 1; }
+		);
+	testEquality(myName, myName2, true, "myName != myName2", englishAlpha);
+	// ARGH == noStr:
+	// because ARGH is defined to only move states if it sees char of 'A','R','G',or 'H', otherwise it fails. 
+	// therefore under the alphabet of binary, where there is only the characters of 1 and 0, it accepts no str
+	testEquality(ARGH, noStr, true, "ARGH != noStr", binaryAlpha);
+	/*
+		6 cases of DFAs that are not equal, L(DFA_a) != L(DFA_b)
+	*/
+	// onlyZeros != onlyZeros2: onlyZeros2 accepts strings of only zeros and the empty str 
+	// Theres only the different of that one accept that makes these not equal
+	DFA<int, int>* onlyZeros2 = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1); },
+		0,
+		[](int s, int c) {
+			if ((c == 0) && (s == 0))
+				return 0;
+			else
+				return 1;
+		},
+		[](int s) {return s == 0; }
+		);
+	testEquality(onlyZeros, onlyZeros2, false, "onlyZeros == onlyZeros2", binaryAlpha);
+	// onlyEven != onlyEven2: false because of the alphabet, however, equality holds true under binary
+	testEquality(onlyEven, onlyEven2, false, "onlyEven == onlyEven2", englishAlpha);
+	// myName != notMyName: a case that should obviously be false
+	testEquality(myName, notMyName, false, "myName == notMyName", englishAlpha);
+	// onlyEmpty != noStr: Only different is that empty str is accepted by one DFA
+	testEquality(onlyEmpty, noStr, false, "onlyEmpty == noStr", binaryAlpha);
+	// the L(zeroOne) = the set of all str's that have a consecutive zero and one anywhere in it.
+	// L(signedBinary) = the set of str's starting with a 1
+	testEquality(zeroOne, signedBinary, false, "oneZero == signedBinary", binaryAlpha);
+	// L(binaryStrs) = the set of strings that are of only binary char's, being 1 or 0, no empty str.
+	// L(onlyZeros) = the set of strings that contain at least one 0, no accept of empty str
+	DFA<int, int>* binaryStrs = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1); },
+		0,
+		[](int s, int c) {
+			if ((c == 0 || c == 1) && (s == 0))
+				return 0;
+			else
+				return 1;
+		},
+		[](int s) {return s == 0; }
+		);
+	// onlyZero's is a subset of binaryStrs,
+	testSubset(onlyZeros, binaryStrs, true, "onlyZeros !subset binaryStrs", binaryAlpha);
+	// but binaryStrs is not a subset of onlyZeros,
+	testSubset(binaryStrs, onlyZeros, false, "onlyZeros subset binaryStrs", binaryAlpha);
+	// therefore, they are not equal. 
+	testEquality(onlyZeros, binaryStrs, false, "onlyZeros == binaryStrs", binaryAlpha);
+	/*
+		TASK #22 - Verify your complement, union, and intersect functions using the equality function.
+	*/
+	// This is a different definition of notMyNameDFA. 
+	// The complement of this DFA will be equal to the DFA myName
+	DFA<int, int>* notMyName2 = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3); },
+		0,
+		[](int s, int c) {
+			if ((c == 67) && (s == 0))
+				return 1;
+			else if ((c == 74) && (s == 1))
+				return 2;
+			else
+				return 3;
+		},
+		[](int s) {return s == 0 || s == 1 || s == 3; }
+		);
+	testEquality(complement(notMyName2), myName, true, "~notMyName != myName", englishAlpha);
+	// L(binaryStrsNoEmpty) = The set of strings that are of only 1's and/or 0's, being a binary str.
+	// with no accept for the empty str
+	DFA<int, int>* binaryStrsNoEmpty = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
+		0,
+		[](int s, int c) {
+			if ((c == 0 || c == 1) && (s == 0 || s == 1))
+				return 1;
+			else
+				return 2;
+		},
+		[](int s) {return s == 1; }
+		);
+	// onlyZeros U signedBinary U zeroOne == binaryStrsNoEmpty
+	testEquality(unionDFA(unionDFA(onlyZeros, signedBinary), zeroOne), binaryStrsNoEmpty,
+		true, "onlyZerosUsignedBinaryUzeroOne != binaryStrs", binaryAlpha);
+	testEquality(unionDFA(myName, myName), myName, true, "myName U myName != myName", englishAlpha);
+
+	// L(onlyZeros ^ onlyEven) = the set of strings that have even length and only zero, no empty str
+	// L(onlyEvenZeros) = the set of strings that have even length and only zero, no empty str
+	DFA<int, int>* onlyEvenZeros = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3); },
+		0,
+		[](int s, int c) {
+			if ((s == 0) && (c == 0))
+				return 1;
+			else if ((s == 1) && (c == 0))
+				return 2;
+			else if ((s == 2) && (c == 0))
+				return 1;
+			else
+				return 3;
+		},
+		[](int s) {return s == 2; }
+		);
+	testEquality(intersect(onlyEven, onlyZeros), onlyEvenZeros, true, 
+		"onlyEven ^ onlyZeros != onlyEvenZeros", binaryAlpha);
+	//testEquality(intersect(, ), , true, " ^ != ", );
 	cout << endl;
 	return 0;
 }
 /*
-	******** FUNCTION DEFINITIONS **********
+	********** FUNCTION DEFINITIONS **********
 */
 list<list<int>> getLayer(list<int> sigma, int N) {
 	list<int>::iterator i;
@@ -932,4 +1090,10 @@ bool equality(DFA<State1, C>* X, DFA<State2, C>* Y, list<int> sigma) {
 		return true;
 	}
 	return false;
+}
+template<typename State1, typename State2, typename C>
+void testEquality(DFA<State1, C>* X, DFA<State2, C>* Y, bool answer, string name, list<int> sigma) {
+	if (!(equality(X, Y, sigma) == answer)) {
+		cout << endl << "### FAIL: " << name << " ###" << endl;
+	}
 }
