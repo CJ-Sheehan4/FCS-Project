@@ -7,8 +7,9 @@
 #include <algorithm>
 #include <typeinfo>
 #include "DFA.h"
+#include "NFA.h"
 #include "DFA.cpp"
-
+#include "NFA.cpp"
 using namespace std;
 template<typename State>
 class Config {
@@ -500,10 +501,12 @@ int main(void) {
 	auto* cZeroOne_U_cOnlyEven = unionDFA(cZeroOne, cOnlyEven);
 	auto* fourUDFA = unionDFA(threeDFAUnion, myName);
 	testUandInter(onlyZeros_U_signedBinary, "onlyZeros_U_signedBinary", false, false,
-		{ {0}, {1}, {1,0}, {0,0,0}, {1,0,0}, {0,0,0,0}, {0,1}, {0,0,0,1}, {0,1,0}, {0,1,1,1}, {2}, {0,1,1,0} }
+		{ {0}, {1}, {1,0}, {0,0,0}, {1,0,0}, {0,0,0,0}, 
+		{0,1}, {0,0,0,1}, {0,1,0}, {0,1,1,1}, {2}, {0,1,1,0} }
 	);
 	testUandInter(threeDFAUnion, "(onlyZeros U signedBinary) U onlyEven", false, false,
-		{ {0}, {1}, {1,0}, {0,0,0}, {1,1,1}, {0,1}, {0,1,1}, {0,1,1}, {0,1,0}, {0,1,1,1,0}, {2}, {0,1,1,0,0} }
+		{ {0}, {1}, {1,0}, {0,0,0}, {1,1,1}, {0,1}, {0,1,1}, 
+		{0,1,1}, {0,1,0}, {0,1,1,1,0}, {2}, {0,1,1,0,0} }
 	);
 	testUandInter(fourUDFA, "fourUDFA", false, false,
 		{ {0}, {1}, {1,0}, {'C','J'}, {2,2}, {0,1}, {0,1,1}, {0,1,1}, {0,1,0}, {0,1,1,1,0}}
@@ -949,6 +952,28 @@ int main(void) {
 	testEquality(intersect(zeroOne, zeroOne), intersect(zeroOne, zeroOne), true,
 		"zeroOne_INT_zeroOne  != ~zeroOne_U_zeroOne ", binaryAlpha);
 	cout << endl;
+	NFA<int, int>* N4 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
+		0,
+		[](int s, int c) {
+			if ((s == 0) && (c == 1))
+				return list<int>{1};
+			else if (s == 1 && c == 0)
+				return list<int>{1, 2};
+			else if ((s == 1) && (c == 1))
+				return list<int>{2};
+			else if (s == 2 && c == 0)
+				return list<int>{0};
+		},
+		[](int s) { 
+			if (s == 0) {
+				return list<int>{ 2 };
+			}
+		},
+		[](int s) {return s == 0; }
+		);
+
+
 	return 0;
 }
 /*
