@@ -60,6 +60,10 @@ template<typename State1, typename State2, typename C>
 bool equality(DFA<State1, C>* X, DFA<State2, C>* Y, list<int> sigma);
 template<typename State1, typename State2, typename C>
 void testEquality(DFA<State1, C>* X, DFA<State2, C>* Y, bool answer, string name, list<int> sigma);
+template<typename State, typename C>
+NFA<State, C>* DFAtoNFA(DFA<State, C> *dfa);
+template<typename State, typename C>
+void testNFA(NFA<State, C>* nfa, list<int> str);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -952,6 +956,105 @@ int main(void) {
 	testEquality(intersect(zeroOne, zeroOne), intersect(zeroOne, zeroOne), true,
 		"zeroOne_INT_zeroOne  != ~zeroOne_U_zeroOne ", binaryAlpha);
 	cout << endl;
+	/*
+		TASK #25 - Write a dozen example NFAs.
+	*/
+	NFA<int, int>* onlyEvenNFA = DFAtoNFA(onlyEven);
+	if (!(onlyEvenNFA->Q(0) && onlyEvenNFA->Q(1) && (!onlyEvenNFA->Q(2)))) {
+		cout << "### FAIL DFAtoNFA: Q ###";
+	}
+	if (onlyEvenNFA->q0 != 0) {
+		cout << "### FAIL DFAtoNFA: q0 ###";
+	}
+	int tempState = onlyEvenNFA->q0;
+	list<int> tempStr = {1,0,1,0};
+	list<int> setState;
+	while (!tempStr.empty()) {
+		setState = onlyEvenNFA->d1(tempState, tempStr.front()); 
+		tempStr.pop_front();
+		tempState = setState.front();
+	}
+	if (!onlyEvenNFA->F(tempState)) {
+		cout << "### FAIL DFAtoNFA: F ###";
+	}
+	if (onlyEvenNFA->d2(0) != list<int>{}) {
+		cout << "### FAIL DFAtoNFA: d2 ###";
+	}
+	// example N1 in the textbook
+	NFA<int, int>* N1 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3); },
+		0,
+		[](int s, int c) {
+			if ((s == 0) && (c == 0))
+				return list<int>{0};
+			else if ((s == 0) && (c == 1))
+				return list<int> {0, 1};
+			else if ((s == 1) && (c == 0))
+				return list<int>{2};
+			else if ((s == 2) && (c == 1))
+				return list<int>{3};
+			else if ((s == 3) && (c == 0 || c == 1))
+				return list<int>{3};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			if (s == 1)
+				return list<int>{ 2 };
+			else
+				return list<int>{};
+		},
+			[](int s) {return s == 3; }
+		);
+	// example N2 in the textbook, L(N2) = strings over {0,1} with a 1 third from the end
+	NFA<int, int>* N2 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3); },
+		0,
+		[](int s, int c) {
+			if ((s == 0) && (c == 0))
+				return list<int>{0};
+			else if ((s == 0) && (c == 1))
+				return list<int> {0, 1};
+			else if ((s == 1) && (c == 0 || c == 1))
+				return list<int>{2};
+			else if ((s == 2) && (c == 0 || c == 1))
+				return list<int>{3};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			return list<int>{};
+		},
+			[](int s) {return s == 3; }
+		);
+	// example in textbook N3
+	// aceepts strings that are multiples of 2 or 3
+	NFA<int, int>* N3 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4) || (s == 5); },
+		0,
+		[](int s, int c) {
+			if (s == 1)
+				return list<int>{2};
+			else if (s == 2)
+				return list<int> {1};
+			else if (s == 3)
+				return list<int>{4};
+			else if (s == 4)
+				return list<int>{5};
+			else if (s == 5)
+				return list<int>{3};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			if (s == 0)
+				return list<int>{ 1,3 };
+			else
+				return list<int>{};
+		},
+			[](int s) {return s == 1 || s == 3; }
+		);
+	// Example from textbook. accepts: epsilon, {0}, {1010}, {100}; doesnt accept: {1}, {11}, {10110}
 	NFA<int, int>* N4 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
 		0,
@@ -964,16 +1067,202 @@ int main(void) {
 				return list<int>{2};
 			else if (s == 2 && c == 0)
 				return list<int>{0};
+			else
+				return list<int>{};
 		},
-		[](int s) { 
-			if (s == 0) {
+		[](int s) {
+			if (s == 0)
 				return list<int>{ 2 };
-			}
+			else
+				return list<int>{};
 		},
-		[](int s) {return s == 0; }
+			[](int s) {return s == 0; }
 		);
-
-
+	// NFA with a graph that is infinitly large
+	NFA<int, int>* N5 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 0)
+				return list<int>{1};
+			else if (s == 1 && c == 1)
+				return list<int>{2};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			if(s == 0)
+				return list<int>{1};
+			else if(s == 1)
+				return list<int>{0};
+			else
+				return list<int>{};
+		},
+			[](int s) {return s == 2; }
+		);
+	// L(N6) = strings of a finite length that end in either '11' or '00'
+	NFA<int, int>* N6 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) ||
+			(s == 4) || (s == 5) || (s == 6); },
+		0,
+		[](int s, int c) {
+			if (s == 1 && c == 0)
+				return list<int>{1, 2};
+			else if (s == 1 && c == 1)
+				return list<int>{1};
+			else if(s == 2 && c == 0)
+				return list<int>{3};
+			else if (s == 4 && c == 0)
+				return list<int>{4};
+			else if (s == 4 && c == 1)
+				return list<int>{4, 5};
+			else if (s == 5 && c == 1)
+				return list<int>{6};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			if (s == 0)
+				return list<int>{1, 4};
+			else
+				return list<int>{};
+		},
+		[](int s) {return s == 3 || s == 6; }
+		);
+	// L(N7) = only the strings {00},{01},{10},{11}
+	NFA<int, int>* N7 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && (c == 0 || c == 1))
+				return list<int>{1, 3};
+			else if (s == 1 && c == 1)
+				return list<int>{2};
+			else if (s == 3 && c == 0)
+				return list<int>{4};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+				return list<int>{};
+		},
+			[](int s) {return s == 2 || s == 4; }
+		);
+	// L(N8) = all strings that if they are even, will be all 1's, and if they are odd, they are all 0's
+	// accepts: {0}, {000}, {00000}, {11}, {1111}, {111111}; does NOT accept: {01}, {00}, {111}, {1}
+	NFA<int, int>* N8 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4); },
+		0,
+		[](int s, int c) {
+			if (s == 1 && c == 1)
+				return list<int>{2};
+			else if (s == 2 && c == 1)
+				return list<int>{1};
+			else if (s == 3 && c == 0)
+				return list<int>{4};
+			else if (s == 4 && c == 0)
+				return list<int>{3};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			if (s == 0)
+				return list<int>{1, 3};
+			else
+				return list<int>{};
+		},
+			[](int s) {return s == 1 || s == 4; }
+		);
+	// L(N9) = all strings that start and end with the char 1, with any 
+	// amount of char's in between, over sigma{0, 1}.  
+	NFA<int, int>* N9 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 1)
+				return list<int>{1};
+			else if (s == 1 && c == 0)
+				return list<int>{1};
+			else if (s == 1 && c == 1)
+				return list<int>{1, 2};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			return list<int>{};
+		},
+			[](int s) {return s == 2; }
+		);
+	// L(N10) = any string that alternates between 1 and 0, starting with either 1 or 0. 
+	// accepts: {0}, {1}, {10}, {01},  {010}, {1010101}, {101010}; does NOT accept: {11}, {00}, {1011}
+	NFA<int, int>* N10 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 0)
+				return list<int>{2};
+			else if (s == 0 && c == 1)
+				return list<int>{1};
+			else if (s == 1 && c == 0)
+				return list<int>{2};
+			else if (s == 2 && c == 1)
+				return list<int>{1};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			return list<int>{};
+		},
+			[](int s) {return s == 1 || s == 2; }
+		);
+	// N11 is an implementation of my signedBinary DFA intersected with my zeroOne DFA.
+	// The definition was very long and I wanted to see, how much less code it would be.
+	// The delta for the DFA version of this is 31 lines, and the delta for this one is 13 lines. 
+	NFA<int, int>* N11 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 1)
+				return list<int>{1};
+			else if (s == 1 && c == 0)
+				return list<int>{2};
+			else if (s == 1 && c == 1)
+				return list<int>{1};
+			else if (s == 2 && c == 0)
+				return list<int>{2};
+			else if (s == 2 && c == 1)
+				return list<int>{3};
+			else if (s == 3 && (c == 0 || c == 1))
+				return list<int>{3};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			return list<int>{};
+		},
+			[](int s) {return s == 3; }
+		);
+	// This is a similar take on the previous NFA that had multiple of 2 or 3 except with decimal
+	// accept: {2468}, {222}, {24}, {68}, {666}, {693}; does not accept: {23}, {2469}, {932}
+	NFA<int, int>* N12 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
+		0,
+		[](int s, int c) {
+			if (s == 1 && (c == 2 || c == 4 || c == 6 || c == 8))
+				return list<int>{1};
+			if (s == 2 && (c == 3 || c == 6 || c == 9))
+				return list<int>{2};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			if (s == 0)
+				return list<int>{1, 2};
+			else
+				return list<int>{};
+		},
+			[](int s) {return s == 1 || s == 2; }
+		);
 	return 0;
 }
 /*
@@ -1298,5 +1587,33 @@ template<typename State1, typename State2, typename C>
 void testEquality(DFA<State1, C>* X, DFA<State2, C>* Y, bool answer, string name, list<int> sigma) {
 	if (!(equality(X, Y, sigma) == answer)) {
 		cout << endl << "### FAIL: " << name << " ###" << endl;
+	}
+}
+/*
+	TASK #23 - Write a (trivial) function that converts DFAs into NFAs.
+*/
+template<typename State, typename C>
+NFA<State, C>* DFAtoNFA(DFA<State, C>* dfa) {
+	NFA<int, int>* nfa = new NFA<int, int>(
+		[dfa](int s) {return dfa->Q(s); },
+		dfa->q0,
+		[dfa](int s, int c) {return list<int>{dfa->d(s, c)}; },
+		[dfa](int s) {return list<int>{}; },
+		[dfa](int s) {return dfa->F(s); }
+		);
+
+	return nfa;
+}
+template<typename State, typename C>
+void testNFA(NFA<State, C>*nfa, list<int> str) {
+	int tempState = nfa->q0;
+	list<int> setState;
+	while (!str.empty()) {
+		setState = nfa->d1(tempState, str.front());
+		str.pop_front();
+		tempState = setState.front();
+	}
+	if (!nfa->F(tempState)) {
+		cout << "### FAIL:  ###";
 	}
 }
