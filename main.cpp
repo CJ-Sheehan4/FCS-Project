@@ -64,6 +64,8 @@ template<typename State, typename C>
 NFA<State, C>* DFAtoNFA(DFA<State, C> *dfa);
 template<typename State, typename C>
 void testNFA(NFA<State, C>* nfa, list<int> str);
+template<typename State>
+list<Config<State>> createTrace(list<State> states, list<int> str);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -957,7 +959,7 @@ int main(void) {
 		"zeroOne_INT_zeroOne  != ~zeroOne_U_zeroOne ", binaryAlpha);
 	cout << endl;
 	/*
-		TASK #25 - Write a dozen example NFAs.
+		testing TASK 24
 	*/
 	NFA<int, int>* onlyEvenNFA = DFAtoNFA(onlyEven);
 	if (!(onlyEvenNFA->Q(0) && onlyEvenNFA->Q(1) && (!onlyEvenNFA->Q(2)))) {
@@ -980,6 +982,9 @@ int main(void) {
 	if (onlyEvenNFA->d2(0) != list<int>{}) {
 		cout << "### FAIL DFAtoNFA: d2 ###";
 	}
+	/*
+		TASK #25 - Write a dozen example NFAs.
+	*/
 	// example N1 in the textbook
 	NFA<int, int>* N1 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3); },
@@ -1006,6 +1011,21 @@ int main(void) {
 		},
 			[](int s) {return s == 3; }
 		);
+	// using -1 as a flag for upcoming epsilon transition
+	// traces that are accepting
+	list<Config<int>> C1N1 = createTrace(list<int>{0,1,2,3,3}, list<int>{1,0,1,1});
+	list<Config<int>> C2N1 = createTrace(list<int>{0,-1, 1, 2,3,3}, list<int>{1, 1, 1});
+	list<Config<int>> C3N1 = createTrace(list<int>{0, 0, 1, 2, 3, 3, 3}, list<int>{0,1,0,1,1,0});
+	list<Config<int>> C4N1 = createTrace(list<int>{0,0,0,0,1,2,3}, list<int>{0,0,0,1,0,1});
+	list<Config<int>> C5N1 = createTrace(list<int>{0,0,0,0,-1, 1,2,3,3}, list<int>{0,1,0,1,1,0});
+	list<Config<int>> C6N1 = createTrace(list<int>{0,0,0,1,2,3,3}, list<int>{1,0,1,0,1,0});
+	// traces that are rejecting
+	list<Config<int>> C7N1 = createTrace(list<int>{0,0,0,0,1}, list<int>{1, 0, 1, 1});
+	list<Config<int>> C8N1 = createTrace(list<int>{0,0,0,1}, list<int>{1, 1, 1});
+	list<Config<int>> C9N1 = createTrace(list<int>{0,0,0,0,0,-1,1,2}, list<int>{0, 1, 0, 1, 1, 0});
+	list<Config<int>> C10N1 = createTrace(list<int>{0,0,0,0,0,0,0}, list<int>{0, 0, 0, 1, 0, 1});
+	list<Config<int>> C11N1 = createTrace(list<int>{0,0,0,0,0,1,2}, list<int>{0, 1, 0, 1, 1, 0});
+	list<Config<int>> C12N1 = createTrace(list<int>{0,0,0,0,0,-1,1,2}, list<int>{1, 0, 1, 0, 1, 0});
 	// example N2 in the textbook, L(N2) = strings over {0,1} with a 1 third from the end
 	NFA<int, int>* N2 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3); },
@@ -1027,6 +1047,20 @@ int main(void) {
 		},
 			[](int s) {return s == 3; }
 		);
+	// traces that are accepting
+	list<Config<int>> C1N2 = createTrace(list<int>{0,1,2,3}, list<int>{1,0,0});
+	list<Config<int>> C2N2 = createTrace(list<int>{0,1,2,3}, list<int>{1,0,1});
+	list<Config<int>> C3N2 = createTrace(list<int>{0,1,2,3}, list<int>{1,1,1});
+	list<Config<int>> C4N2 = createTrace(list<int>{0,0,0,0,0,1,2,3}, list<int>{0,0,0,0,1,0,0});
+	list<Config<int>> C5N2 = createTrace(list<int>{0,0,1,2,3}, list<int>{0,1,0,0});
+	list<Config<int>> C6N2 = createTrace(list<int>{0,0,1,2,3}, list<int>{0,1,1,0});
+	// traces that are rejecting
+	list<Config<int>> C7N2 = createTrace(list<int>{0,0,1,2}, list<int>{0,1,1});
+	list<Config<int>> C8N2 = createTrace(list<int>{0,0,0,0}, list<int>{1,0,0});
+	list<Config<int>> C9N2 = createTrace(list<int>{0,0,1,2}, list<int>{1,1,1});
+	list<Config<int>> C10N2 = createTrace(list<int>{0,0,0,1}, list<int>{1,0,1});
+	list<Config<int>> C11N2 = createTrace(list<int>{0,0,0,0,0}, list<int>{0,1,0,0});
+	list<Config<int>> C12N2 = createTrace(list<int>{0,0,0,1,2}, list<int>{0,1,1,0});
 	// example in textbook N3
 	// aceepts strings that are multiples of 2 or 3
 	NFA<int, int>* N3 = new NFA<int, int>(
@@ -1054,6 +1088,20 @@ int main(void) {
 		},
 			[](int s) {return s == 1 || s == 3; }
 		);
+	// traces that are accepting
+	list<Config<int>> C1N3 = createTrace(list<int>{-1,0,1,2,1}, list<int>{0,0});
+	list<Config<int>> C2N3 = createTrace(list<int>{-1,0,3,4,5,3}, list<int>{0,0,0});
+	list<Config<int>> C3N3 = createTrace(list<int>{-1,0,1,2,1,2,1}, list<int>{0,0,0,0});
+	list<Config<int>> C4N3 = createTrace(list<int>{-1,0,3,4,5,3,4,5,3}, list<int>{0,0,0,0,0,0,});
+	list<Config<int>> C5N3 = createTrace(list<int>{-1,0,1,2,1,2,1,2,1}, list<int>{0,0,0,0,0,0});
+	list<Config<int>> C6N3 = createTrace(list<int>{-1,0,1,2,1,2,1,2,1,2,1}, list<int>{0,0,0,0,0,0,0,0});
+	// traces that are rejecting
+	list<Config<int>> C7N3 = createTrace(list<int>{-1,0,3,4,5}, list<int>{0,0});
+	list<Config<int>> C8N3 = createTrace(list<int>{-1,0,1,2,1,2}, list<int>{0,0,0});
+	list<Config<int>> C9N3 = createTrace(list<int>{-1,0,3,4,5,3,4}, list<int>{0,0,0,0});
+	list<Config<int>> C10N3 = createTrace(list<int>{-1,0,1,2,1,2,1,2}, list<int>{0,0,0,0,0});
+	list<Config<int>> C11N3 = createTrace(list<int>{-1,0,3,4,5,3,4,5}, list<int>{0,0,0,0,0});
+	list<Config<int>> C12N3 = createTrace(list<int>{-1,0,1,2}, list<int>{0});
 	// Example from textbook. accepts: epsilon, {0}, {1010}, {100}; doesnt accept: {1}, {11}, {10110}
 	NFA<int, int>* N4 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
@@ -1078,6 +1126,20 @@ int main(void) {
 		},
 			[](int s) {return s == 0; }
 		);
+	// traces that are accepting
+	list<Config<int>> C1N4 = createTrace(list<int>{0,1,1,2,0}, list<int>{1,0,1,0});
+	list<Config<int>> C2N4 = createTrace(list<int>{-1,0,2,0}, list<int>{0});
+	list<Config<int>> C3N4 = createTrace(list<int>{0}, list<int>{});
+	list<Config<int>> C4N4 = createTrace(list<int>{0,1,2,0}, list<int>{1,0,0});
+	list<Config<int>> C5N4 = createTrace(list<int>{0,1,2,0}, list<int>{1,1,0});
+	list<Config<int>> C6N4 = createTrace(list<int>{-1,0,2,-1,0,2,0}, list<int>{0,0});
+	// traces that are rejecting
+	list<Config<int>> C7N4 = createTrace(list<int>{-1,0,2}, list<int>{1,0,1,0});
+	list<Config<int>> C8N4 = createTrace(list<int>{-1,0,2}, list<int>{});
+	list<Config<int>> C9N4 = createTrace(list<int>{0,1,1,2}, list<int>{1,0,0});
+	list<Config<int>> C10N4 = createTrace(list<int>{-1,0,2}, list<int>{1,1,0});
+	list<Config<int>> C11N4 = createTrace(list<int>{0,1,2}, list<int>{1,1});
+	list<Config<int>> C12N4 = createTrace(list<int>{0,1,1,2}, list<int>{1,0,1});
 	// NFA with a graph that is infinitly large
 	NFA<int, int>* N5 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
@@ -1100,6 +1162,21 @@ int main(void) {
 		},
 			[](int s) {return s == 2; }
 		);
+	// traces that are accepting
+	list<Config<int>> C1N5 = createTrace(list<int>{0,1,2}, list<int>{0,1});
+	list<Config<int>> C2N5 = createTrace(list<int>{-1,0,1,2}, list<int>{1});
+	list<Config<int>> C3N5 = createTrace(list<int>{0,-1,1,0,-1,1,0,1,2}, list<int>{0,0,0,1});
+	list<Config<int>> C4N5 = createTrace(list<int>{0,-1,1,0,1,2}, list<int>{0,0,1});
+	list<Config<int>> C5N5 = createTrace(list<int>{0,-1,1,0,-1,1,0,-1,1,0,1,2}, 
+		list<int>{0,0,0,0,1});
+	list<Config<int>> C6N5 = createTrace(list<int>{0,1,-1,0,1}, list<int>{0,0,0,0,0,1});
+	// traces that are rejecting
+	list<Config<int>> C7N5 = createTrace(list<int>{-1,0,1,2}, list<int>{1,1});
+	list<Config<int>> C8N5 = createTrace(list<int>{-1,0,1,2}, list<int>{1,0,1});
+	list<Config<int>> C9N5 = createTrace(list<int>{0,-1,1,-1,0,1,2}, list<int>{0,1,0});
+	list<Config<int>> C10N5 = createTrace(list<int>{-1,0,1,2}, list<int>{1,1,1});
+	list<Config<int>> C11N5 = createTrace(list<int>{-1,0,1,2}, list<int>{1,0});
+	list<Config<int>> C12N5 = createTrace(list<int>{0,1}, list<int>{0});
 	// L(N6) = strings of a finite length that end in either '11' or '00'
 	NFA<int, int>* N6 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) ||
@@ -1129,6 +1206,20 @@ int main(void) {
 		},
 		[](int s) {return s == 3 || s == 6; }
 		);
+	// traces that are accepting
+	list<Config<int>> C1N6 = createTrace(list<int>{-1,0,4,5,6}, list<int>{1,1});
+	list<Config<int>> C2N6 = createTrace(list<int>{-1,0,1,2,3}, list<int>{0,0});
+	list<Config<int>> C3N6 = createTrace(list<int>{-1,0,4,4,5,6}, list<int>{0,1,1});
+	list<Config<int>> C4N6 = createTrace(list<int>{-1,0,1,1,2,3}, list<int>{1,0,0});
+	list<Config<int>> C5N6 = createTrace(list<int>{-1,0,1,1,1,2,3}, list<int>{0,1,0,0});
+	list<Config<int>> C6N6 = createTrace(list<int>{-1,0,4,4,4,5,6}, list<int>{1,0,1,1});
+	// traces that are rejecting
+	list<Config<int>> C7N6 = createTrace(list<int>{-1,0,1,1,1}, list<int>{1,1});
+	list<Config<int>> C8N6 = createTrace(list<int>{-1,0,4,4,4}, list<int>{0,0});
+	list<Config<int>> C9N6 = createTrace(list<int>{-1,0,4,4,4,4}, list<int>{0,1,1});
+	list<Config<int>> C10N6 = createTrace(list<int>{-1,0,4,4,4,5}, list<int>{0,1,1});
+	list<Config<int>> C11N6 = createTrace(list<int>{-1,0,1}, list<int>{});
+	list<Config<int>> C12N6 = createTrace(list<int>{-1,0,4,5}, list<int>{1});
 	// L(N7) = only the strings {00},{01},{10},{11}
 	NFA<int, int>* N7 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4); },
@@ -1148,6 +1239,20 @@ int main(void) {
 		},
 			[](int s) {return s == 2 || s == 4; }
 		);
+	// traces that are accepting
+	list<Config<int>> C1N7 = createTrace(list<int>{0,3,4}, list<int>{0,0});
+	list<Config<int>> C2N7 = createTrace(list<int>{0,1,2}, list<int>{0,1});
+	list<Config<int>> C3N7 = createTrace(list<int>{0,3,4}, list<int>{1,0});
+	list<Config<int>> C4N7 = createTrace(list<int>{0,1,2}, list<int>{1,1});
+	list<Config<int>> C5N7 = createTrace(list<int>{0,1}, list<int>{0});
+	list<Config<int>> C6N7 = createTrace(list<int>{0,3}, list<int>{0});
+	// traces that are rejecting
+	list<Config<int>> C7N7 = createTrace(list<int>{0,1}, list<int>{1});
+	list<Config<int>> C8N7 = createTrace(list<int>{0,3}, list<int>{1});
+	list<Config<int>> C9N7 = createTrace(list<int>{0}, list<int>{});
+	list<Config<int>> C10N7 = createTrace(list<int>{0,3,4}, list<int>{0,0,0});
+	list<Config<int>> C11N7 = createTrace(list<int>{0,1}, list<int>{0,0,0});
+	list<Config<int>> C12N7 = createTrace(list<int>{0,1}, list<int>{0,0});
 	// L(N8) = all strings that if they are even, will be all 1's, and if they are odd, they are all 0's
 	// accepts: {0}, {000}, {00000}, {11}, {1111}, {111111}; does NOT accept: {01}, {00}, {111}, {1}
 	NFA<int, int>* N8 = new NFA<int, int>(
@@ -1173,6 +1278,20 @@ int main(void) {
 		},
 			[](int s) {return s == 1 || s == 4; }
 		);
+	// traces that are accepting
+	list<Config<int>> C1N8 = createTrace(list<int>{-1,0,1,2,1}, list<int>{1,1});
+	list<Config<int>> C2N8 = createTrace(list<int>{-1,0,1,2,1,2,1}, list<int>{1,1,1,1});
+	list<Config<int>> C3N8 = createTrace(list<int>{-1,0,3,4}, list<int>{0});
+	list<Config<int>> C4N8 = createTrace(list<int>{-1,0,3,4,3,4}, list<int>{0,0,0});
+	list<Config<int>> C5N8 = createTrace(list<int>{-1,0,3,4,3}, list<int>{0,0,0,0,0});
+	list<Config<int>> C6N8 = createTrace(list<int>{-1,0,1,2,1,2,1,2,1}, list<int>{1,1,1,1,1,1});
+	// traces that are rejecting
+	list<Config<int>> C7N8 = createTrace(list<int>{-1,0,3}, list<int>{1,1});
+	list<Config<int>> C8N8 = createTrace(list<int>{-1,0,1}, list<int>{0,0});
+	list<Config<int>> C9N8 = createTrace(list<int>{-1,0,1,2}, list<int>{1,0});
+	list<Config<int>> C10N8 = createTrace(list<int>{-1,0,1}, list<int>{0});
+	list<Config<int>> C11N8 = createTrace(list<int>{-1,0,1}, list<int>{0,0,0});
+	list<Config<int>> C12N8 = createTrace(list<int>{-1,0,3}, list<int>{1,0});
 	// L(N9) = all strings that start and end with the char 1, with any 
 	// amount of char's in between, over sigma{0, 1}.  
 	NFA<int, int>* N9 = new NFA<int, int>(
@@ -1193,17 +1312,27 @@ int main(void) {
 		},
 			[](int s) {return s == 2; }
 		);
+	// traces that are accepting
+	list<Config<int>> C1N9 = createTrace(list<int>{0,1,1,2}, list<int>{1,1,1});
+	list<Config<int>> C2N9 = createTrace(list<int>{0,1,1,2}, list<int>{1,1,1});
+	list<Config<int>> C3N9 = createTrace(list<int>{0,1,1,1,2}, list<int>{1,0,0,1});
+	list<Config<int>> C4N9 = createTrace(list<int>{0,1,1,1,1,2}, list<int>{1,0,1,0,1});
+	list<Config<int>> C5N9 = createTrace(list<int>{0,1,1,1,2}, list<int>{1,0,1,1});
+	list<Config<int>> C6N9 = createTrace(list<int>{0,1,2}, list<int>{1,1});
+	// traces that are rejecting
+	list<Config<int>> C7N9 = createTrace(list<int>{0,1,1}, list<int>{1,1});
+	list<Config<int>> C8N9 = createTrace(list<int>{0,1,2}, list<int>{1,1,1});
+	list<Config<int>> C9N9 = createTrace(list<int>{0,1,1,1}, list<int>{1,1,1});
+	list<Config<int>> C10N9 = createTrace(list<int>{0}, list<int>{0});
+	list<Config<int>> C11N9 = createTrace(list<int>{0}, list<int>{});
+	list<Config<int>> C12N9 = createTrace(list<int>{0,1,1}, list<int>{1,0});
 	// L(N10) = any string that alternates between 1 and 0, starting with either 1 or 0. 
 	// accepts: {0}, {1}, {10}, {01},  {010}, {1010101}, {101010}; does NOT accept: {11}, {00}, {1011}
 	NFA<int, int>* N10 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
 		0,
 		[](int s, int c) {
-			if (s == 0 && c == 0)
-				return list<int>{2};
-			else if (s == 0 && c == 1)
-				return list<int>{1};
-			else if (s == 1 && c == 0)
+			if (s == 1 && c == 0)
 				return list<int>{2};
 			else if (s == 2 && c == 1)
 				return list<int>{1};
@@ -1211,10 +1340,27 @@ int main(void) {
 				return list<int>{};
 		},
 		[](int s) {
-			return list<int>{};
+			if (s == 0)
+				return list<int>{1,2};
+			else
+				return list<int>{};
 		},
 			[](int s) {return s == 1 || s == 2; }
 		);
+	// traces that are accepting
+	list<Config<int>> C1N10 = createTrace(list<int>{-1,0,1}, list<int>{});
+	list<Config<int>> C2N10 = createTrace(list<int>{-1,0,2,1}, list<int>{1});
+	list<Config<int>> C3N10 = createTrace(list<int>{-1,0,1,2}, list<int>{0});
+	list<Config<int>> C4N10 = createTrace(list<int>{-1,0,2,1,2}, list<int>{1,0});
+	list<Config<int>> C5N10 = createTrace(list<int>{-1,0,1,2,1}, list<int>{0,1});
+	list<Config<int>> C6N10 = createTrace(list<int>{-1,0,2,1,2,1}, list<int>{1,0,1});
+	// traces that are rejecting
+	list<Config<int>> C7N10 = createTrace(list<int>{-1,0,1}, list<int>{1});
+	list<Config<int>> C8N10 = createTrace(list<int>{-1,0,2}, list<int>{0});
+	list<Config<int>> C9N10 = createTrace(list<int>{-1,0,1}, list<int>{1,0});
+	list<Config<int>> C10N10 = createTrace(list<int>{-1,0,2}, list<int>{0,1});
+	list<Config<int>> C11N10 = createTrace(list<int>{-1,0,2,1}, list<int>{1,1});
+	list<Config<int>> C12N10 = createTrace(list<int>{-1,0,1}, list<int>{1,1});
 	// N11 is an implementation of my signedBinary DFA intersected with my zeroOne DFA.
 	// The definition was very long and I wanted to see, how much less code it would be.
 	// The delta for the DFA version of this is 31 lines, and the delta for this one is 13 lines. 
@@ -1242,6 +1388,20 @@ int main(void) {
 		},
 			[](int s) {return s == 3; }
 		);
+	// traces that are accepting
+	list<Config<int>> C1N11 = createTrace(list<int>{0,1,2,3}, list<int>{1,0,1});
+	list<Config<int>> C2N11 = createTrace(list<int>{0,1,2,3,3}, list<int>{1,0,1,1});
+	list<Config<int>> C3N11 = createTrace(list<int>{0,1,2,3,3}, list<int>{1,0,1,0});
+	list<Config<int>> C4N11 = createTrace(list<int>{0,1,1,2,3,3}, list<int>{1,1,0,1,1});
+	list<Config<int>> C5N11 = createTrace(list<int>{0,1,1,2,2,2,3}, list<int>{1,1,0,0,0,1});
+	list<Config<int>> C6N11 = createTrace(list<int>{0,1,2,2,3}, list<int>{1,0,0,1});
+	// traces that are rejecting
+	list<Config<int>> C7N11 = createTrace(list<int>{0,1}, list<int>{1});
+	list<Config<int>> C8N11 = createTrace(list<int>{0}, list<int>{0});
+	list<Config<int>> C9N11 = createTrace(list<int>{0,1,1,1}, list<int>{1,1,1});
+	list<Config<int>> C10N11 = createTrace(list<int>{0}, list<int>{0,1});
+	list<Config<int>> C11N11 = createTrace(list<int>{0,1,1,2}, list<int>{1,1,0});
+	list<Config<int>> C12N11 = createTrace(list<int>{0,1,2,2}, list<int>{1,0,0});
 	// This is a similar take on the previous NFA that had multiple of 2 or 3 except with decimal
 	// accept: {2468}, {222}, {24}, {68}, {666}, {693}; does not accept: {23}, {2469}, {932}
 	NFA<int, int>* N12 = new NFA<int, int>(
@@ -1263,6 +1423,20 @@ int main(void) {
 		},
 			[](int s) {return s == 1 || s == 2; }
 		);
+	// traces that are accepting
+	list<Config<int>> C1N12 = createTrace(list<int>{-1,0,1,1}, list<int>{2});
+	list<Config<int>> C2N12 = createTrace(list<int>{-1,0,1,1,1}, list<int>{2,4});
+	list<Config<int>> C3N12 = createTrace(list<int>{-1,0,1,1,1}, list<int>{6,8});
+	list<Config<int>> C4N12 = createTrace(list<int>{-1,0,2,2,2,2,2,2}, list<int>{3,3,9,6,9});
+	list<Config<int>> C5N12 = createTrace(list<int>{-1,0,1,1}, list<int>{6});
+	list<Config<int>> C6N12 = createTrace(list<int>{-1,0,2,2}, list<int>{6});
+	// traces that are rejecting
+	list<Config<int>> C7N12 = createTrace(list<int>{-1,0,2}, list<int>{2});
+	list<Config<int>> C8N12 = createTrace(list<int>{-1,0,1}, list<int>{3});
+	list<Config<int>> C9N12 = createTrace(list<int>{-1,0,1,1}, list<int>{2,3});
+	list<Config<int>> C10N12 = createTrace(list<int>{-1,0,2,2,2}, list<int>{6,3,2});
+	list<Config<int>> C11N12 = createTrace(list<int>{-1,0,2,2}, list<int>{6,8});
+	list<Config<int>> C12N12 = createTrace(list<int>{-1,0,1,1}, list<int>{6,9});
 	return 0;
 }
 /*
@@ -1616,4 +1790,24 @@ void testNFA(NFA<State, C>*nfa, list<int> str) {
 	if (!nfa->F(tempState)) {
 		cout << "### FAIL:  ###";
 	}
+}
+template<typename State>
+list<Config<State>> createTrace(list<State> states, list<int> str) {
+	list<Config<State>> lc;
+	while (!states.empty()) {
+		if (states.front() == -1) {
+			//pop off two states leave the str, then pushback
+			states.pop_front();
+			lc.push_back(Config<State>(states.front(), str));
+			states.pop_front();
+		}
+		else {
+			lc.push_back(Config<State>(states.front(), str));
+			if (!str.empty()) {
+				str.pop_front();
+			}
+			states.pop_front();
+		}
+	}
+	return lc;
 }
