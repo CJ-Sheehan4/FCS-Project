@@ -1,10 +1,8 @@
 CJ Sheehan
 
-Task #1:
-(updated)
-I realized I was overcomplicating things after reviewing the lectures. I decided to change my data 
-types for alphabet and characters. my alphabets are going to be represented as a list container/data 
-structure in the C++ library. The characters will be represented as integers.
+SIDE NOTES
 
-Task #2:
-I will also use a list to implement strings of the given alphabet. 
+Task #23:
+I'm sorry for not including my new NFA.h and NFA.cpp files 
+with the commit for task 23. I got too used to only adding main.cpp,
+along with the DFA files before a commit that I forgot to add the NFA files. 
