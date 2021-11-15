@@ -66,7 +66,10 @@ template<typename State, typename C>
 void testNFA(NFA<State, C>* nfa, list<int> str);
 template<typename State>
 list<Config<State>> createTrace(list<State> states, list<int> str);
-
+template<typename State, typename C>
+bool oracle(NFA<State, C>* nfa, list<int> str, list<Config<State>> ts);
+template<typename State, typename C>
+void oracleLoop(NFA<State, C>* nfa, string name, list<list<int>> strs, list<list<Config<State>>> ts);
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
 		'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
@@ -1022,10 +1025,16 @@ int main(void) {
 	// traces that are rejecting
 	list<Config<int>> C7N1 = createTrace(list<int>{0,0,0,0,1}, list<int>{1, 0, 1, 1});
 	list<Config<int>> C8N1 = createTrace(list<int>{0,0,0,1}, list<int>{1, 1, 1});
-	list<Config<int>> C9N1 = createTrace(list<int>{0,0,0,0,0,-1,1,2}, list<int>{0, 1, 0, 1, 1, 0});
+	list<Config<int>> C9N1 = createTrace(list<int>{0,0,0,0,0,1,2}, list<int>{0, 1, 0, 1, 1, 0});
 	list<Config<int>> C10N1 = createTrace(list<int>{0,0,0,0,0,0,0}, list<int>{0, 0, 0, 1, 0, 1});
 	list<Config<int>> C11N1 = createTrace(list<int>{0,0,0,0,0,1,2}, list<int>{0, 1, 0, 1, 1, 0});
-	list<Config<int>> C12N1 = createTrace(list<int>{0,0,0,0,0,-1,1,2}, list<int>{1, 0, 1, 0, 1, 0});
+	list<Config<int>> C12N1 = createTrace(list<int>{0,0,0,0,0,1,2}, list<int>{1, 0, 1, 0, 1, 0});
+	oracleLoop( 
+		N1,"N1",
+		{ {1,0,1,1}, {1, 1, 1}, {0,1,0,1,1,0}, {0,0,0,1,0,1}, {0,1,0,1,1,0}, {1,0,1,0,1,0}, 
+		{1, 0, 1, 1}, {1, 1, 1}, {0, 1, 0, 1, 1, 0}, {0, 0, 0, 1, 0, 1}, {0, 1, 0, 1, 1, 0}, {1, 0, 1, 0, 1, 0} },
+		{C1N1,C2N1,C3N1,C4N1,C5N1,C6N1,C7N1,C8N1,C9N1,C10N1,C11N1,C12N1 }
+	);
 	// example N2 in the textbook, L(N2) = strings over {0,1} with a 1 third from the end
 	NFA<int, int>* N2 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3); },
@@ -1061,21 +1070,28 @@ int main(void) {
 	list<Config<int>> C10N2 = createTrace(list<int>{0,0,0,1}, list<int>{1,0,1});
 	list<Config<int>> C11N2 = createTrace(list<int>{0,0,0,0,0}, list<int>{0,1,0,0});
 	list<Config<int>> C12N2 = createTrace(list<int>{0,0,0,1,2}, list<int>{0,1,1,0});
+	oracleLoop(
+		N2, "N2",
+		{ C1N2.front().curStr,C2N2.front().curStr,C3N2.front().curStr,C4N2.front().curStr,
+		C5N2.front().curStr,C6N2.front().curStr,C7N2.front().curStr,C8N2.front().curStr,C9N2.front().curStr,
+		C10N2.front().curStr,C11N2.front().curStr,C12N2.front().curStr },
+		{ C1N2,C2N2,C3N2,C4N2,C5N2,C6N2,C7N2,C8N2,C9N2,C10N2,C11N2,C12N2 }
+	);
 	// example in textbook N3
 	// aceepts strings that are multiples of 2 or 3
 	NFA<int, int>* N3 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4) || (s == 5); },
 		0,
 		[](int s, int c) {
-			if (s == 1)
+			if (s == 1 && c == 0)
 				return list<int>{2};
-			else if (s == 2)
+			else if (s == 2 && c == 0)
 				return list<int> {1};
-			else if (s == 3)
+			else if (s == 3 && c == 0)
 				return list<int>{4};
-			else if (s == 4)
+			else if (s == 4 && c == 0)
 				return list<int>{5};
-			else if (s == 5)
+			else if (s == 5 && c == 0)
 				return list<int>{3};
 			else
 				return list<int>{};
@@ -1102,6 +1118,13 @@ int main(void) {
 	list<Config<int>> C10N3 = createTrace(list<int>{-1,0,1,2,1,2,1,2}, list<int>{0,0,0,0,0});
 	list<Config<int>> C11N3 = createTrace(list<int>{-1,0,3,4,5,3,4,5}, list<int>{0,0,0,0,0});
 	list<Config<int>> C12N3 = createTrace(list<int>{-1,0,1,2}, list<int>{0});
+	oracleLoop(
+		N3, "N3",
+		{ C1N3.front().curStr,C2N3.front().curStr,C3N3.front().curStr,C4N3.front().curStr,
+		C5N3.front().curStr,C6N3.front().curStr,C7N3.front().curStr,C8N3.front().curStr,C9N3.front().curStr,
+		C10N3.front().curStr,C11N3.front().curStr,C12N3.front().curStr },
+		{ C1N3,C2N3,C3N3,C4N3,C5N3,C6N3,C7N3,C8N3,C9N3,C10N3,C11N3,C12N3 }
+	);
 	// Example from textbook. accepts: epsilon, {0}, {1010}, {100}; doesnt accept: {1}, {11}, {10110}
 	NFA<int, int>* N4 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
@@ -1140,6 +1163,13 @@ int main(void) {
 	list<Config<int>> C10N4 = createTrace(list<int>{-1,0,2}, list<int>{1,1,0});
 	list<Config<int>> C11N4 = createTrace(list<int>{0,1,2}, list<int>{1,1});
 	list<Config<int>> C12N4 = createTrace(list<int>{0,1,1,2}, list<int>{1,0,1});
+	oracleLoop(
+		N4, "N4",
+		{ C1N4.front().curStr,C2N4.front().curStr,C3N4.front().curStr,C4N4.front().curStr,
+		C5N4.front().curStr,C6N4.front().curStr,C7N4.front().curStr,C8N4.front().curStr,C9N4.front().curStr,
+		C10N4.front().curStr,C11N4.front().curStr,C12N4.front().curStr },
+		{ C1N4,C2N4,C3N4,C4N4,C5N4,C6N4,C7N4,C8N4,C9N4,C10N4,C11N4,C12N4 }
+	);
 	// NFA with a graph that is infinitly large
 	NFA<int, int>* N5 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
@@ -1169,7 +1199,8 @@ int main(void) {
 	list<Config<int>> C4N5 = createTrace(list<int>{0,-1,1,0,1,2}, list<int>{0,0,1});
 	list<Config<int>> C5N5 = createTrace(list<int>{0,-1,1,0,-1,1,0,-1,1,0,1,2}, 
 		list<int>{0,0,0,0,1});
-	list<Config<int>> C6N5 = createTrace(list<int>{0,1,-1,0,1}, list<int>{0,0,0,0,0,1});
+	list<Config<int>> C6N5 = createTrace(list<int>{0,-1,1,0,-1,1,0,-1,1,0,-1,1,0,1,2}, list<int>{0,0,0,0,0,1});
+	//list<Config<int>> C6N5 = createTrace(list<int>{0, -1, 1,-1, 0, 1}, list<int>{0, 0, 0, 0, 0, 1});
 	// traces that are rejecting
 	list<Config<int>> C7N5 = createTrace(list<int>{-1,0,1,2}, list<int>{1,1});
 	list<Config<int>> C8N5 = createTrace(list<int>{-1,0,1,2}, list<int>{1,0,1});
@@ -1177,6 +1208,13 @@ int main(void) {
 	list<Config<int>> C10N5 = createTrace(list<int>{-1,0,1,2}, list<int>{1,1,1});
 	list<Config<int>> C11N5 = createTrace(list<int>{-1,0,1,2}, list<int>{1,0});
 	list<Config<int>> C12N5 = createTrace(list<int>{0,1}, list<int>{0});
+	oracleLoop(
+		N5, "N5",
+		{ C1N5.front().curStr,C2N5.front().curStr,C3N5.front().curStr,C4N5.front().curStr,
+		C5N5.front().curStr,C6N5.front().curStr,C7N5.front().curStr,C8N5.front().curStr,C9N5.front().curStr,
+		C10N5.front().curStr,C11N5.front().curStr,C12N5.front().curStr },
+		{ C1N5,C2N5,C3N5,C4N5,C5N5,C6N5,C7N5,C8N5,C9N5,C10N5,C11N5,C12N5 }
+	);
 	// L(N6) = strings of a finite length that end in either '11' or '00'
 	NFA<int, int>* N6 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) ||
@@ -1220,6 +1258,13 @@ int main(void) {
 	list<Config<int>> C10N6 = createTrace(list<int>{-1,0,4,4,4,5}, list<int>{0,1,1});
 	list<Config<int>> C11N6 = createTrace(list<int>{-1,0,1}, list<int>{});
 	list<Config<int>> C12N6 = createTrace(list<int>{-1,0,4,5}, list<int>{1});
+	oracleLoop(
+		N6, "N6",
+		{ C1N6.front().curStr,C2N6.front().curStr,C3N6.front().curStr,C4N6.front().curStr,
+		C5N6.front().curStr,C6N6.front().curStr,C7N6.front().curStr,C8N6.front().curStr,C9N6.front().curStr,
+		C10N6.front().curStr,C11N6.front().curStr,C12N6.front().curStr },
+		{ C1N6,C2N6,C3N6,C4N6,C5N6,C6N6,C7N6,C8N6,C9N6,C10N6,C11N6,C12N6 }
+	);
 	// L(N7) = only the strings {00},{01},{10},{11}
 	NFA<int, int>* N7 = new NFA<int, int>(
 		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4); },
@@ -1253,6 +1298,13 @@ int main(void) {
 	list<Config<int>> C10N7 = createTrace(list<int>{0,3,4}, list<int>{0,0,0});
 	list<Config<int>> C11N7 = createTrace(list<int>{0,1}, list<int>{0,0,0});
 	list<Config<int>> C12N7 = createTrace(list<int>{0,1}, list<int>{0,0});
+	oracleLoop(
+		N7, "N7",
+		{ C1N7.front().curStr,C2N7.front().curStr,C3N7.front().curStr,C4N7.front().curStr,
+		C5N7.front().curStr,C6N7.front().curStr,C7N7.front().curStr,C8N7.front().curStr,C9N7.front().curStr,
+		C10N7.front().curStr,C11N7.front().curStr,C12N7.front().curStr },
+		{ C1N7,C2N7,C3N7,C4N7,C5N7,C6N7,C7N7,C8N7,C9N7,C10N7,C11N7,C12N7 }
+	);
 	// L(N8) = all strings that if they are even, will be all 1's, and if they are odd, they are all 0's
 	// accepts: {0}, {000}, {00000}, {11}, {1111}, {111111}; does NOT accept: {01}, {00}, {111}, {1}
 	NFA<int, int>* N8 = new NFA<int, int>(
@@ -1292,6 +1344,13 @@ int main(void) {
 	list<Config<int>> C10N8 = createTrace(list<int>{-1,0,1}, list<int>{0});
 	list<Config<int>> C11N8 = createTrace(list<int>{-1,0,1}, list<int>{0,0,0});
 	list<Config<int>> C12N8 = createTrace(list<int>{-1,0,3}, list<int>{1,0});
+	oracleLoop(
+		N8, "N8",
+		{ C1N8.front().curStr,C2N8.front().curStr,C3N8.front().curStr,C4N8.front().curStr,
+		C5N8.front().curStr,C6N8.front().curStr,C7N8.front().curStr,C8N8.front().curStr,C9N8.front().curStr,
+		C10N8.front().curStr,C11N8.front().curStr,C12N8.front().curStr },
+		{ C1N8,C2N8,C3N8,C4N8,C5N8,C6N8,C7N8,C8N8,C9N8,C10N8,C11N8,C12N8 }
+	);
 	// L(N9) = all strings that start and end with the char 1, with any 
 	// amount of char's in between, over sigma{0, 1}.  
 	NFA<int, int>* N9 = new NFA<int, int>(
@@ -1326,6 +1385,13 @@ int main(void) {
 	list<Config<int>> C10N9 = createTrace(list<int>{0}, list<int>{0});
 	list<Config<int>> C11N9 = createTrace(list<int>{0}, list<int>{});
 	list<Config<int>> C12N9 = createTrace(list<int>{0,1,1}, list<int>{1,0});
+	oracleLoop(
+		N9, "N9",
+		{ C1N9.front().curStr,C2N9.front().curStr,C3N9.front().curStr,C4N9.front().curStr,
+		C5N9.front().curStr,C6N9.front().curStr,C7N9.front().curStr,C8N9.front().curStr,C9N9.front().curStr,
+		C10N9.front().curStr,C11N9.front().curStr,C12N9.front().curStr },
+		{ C1N9,C2N9,C3N9,C4N9,C5N9,C6N9,C7N9,C8N9,C9N9,C10N9,C11N9,C12N9 }
+	);
 	// L(N10) = any string that alternates between 1 and 0, starting with either 1 or 0. 
 	// accepts: {0}, {1}, {10}, {01},  {010}, {1010101}, {101010}; does NOT accept: {11}, {00}, {1011}
 	NFA<int, int>* N10 = new NFA<int, int>(
@@ -1361,6 +1427,13 @@ int main(void) {
 	list<Config<int>> C10N10 = createTrace(list<int>{-1,0,2}, list<int>{0,1});
 	list<Config<int>> C11N10 = createTrace(list<int>{-1,0,2,1}, list<int>{1,1});
 	list<Config<int>> C12N10 = createTrace(list<int>{-1,0,1}, list<int>{1,1});
+	oracleLoop(
+		N10, "N10",
+		{ C1N10.front().curStr,C2N10.front().curStr,C3N10.front().curStr,C4N10.front().curStr,
+		C5N10.front().curStr,C6N10.front().curStr,C7N10.front().curStr,C8N10.front().curStr,C9N10.front().curStr,
+		C10N10.front().curStr,C11N10.front().curStr,C12N10.front().curStr },
+		{ C1N10,C2N10,C3N10,C4N10,C5N10,C6N10,C7N10,C8N10,C9N10,C10N10,C11N10,C12N10 }
+	);
 	// N11 is an implementation of my signedBinary DFA intersected with my zeroOne DFA.
 	// The definition was very long and I wanted to see, how much less code it would be.
 	// The delta for the DFA version of this is 31 lines, and the delta for this one is 13 lines. 
@@ -1402,6 +1475,13 @@ int main(void) {
 	list<Config<int>> C10N11 = createTrace(list<int>{0}, list<int>{0,1});
 	list<Config<int>> C11N11 = createTrace(list<int>{0,1,1,2}, list<int>{1,1,0});
 	list<Config<int>> C12N11 = createTrace(list<int>{0,1,2,2}, list<int>{1,0,0});
+	oracleLoop(
+		N11, "N11",
+		{ C1N11.front().curStr,C2N11.front().curStr,C3N11.front().curStr,C4N11.front().curStr,
+		C5N11.front().curStr,C6N11.front().curStr,C7N11.front().curStr,C8N11.front().curStr,C9N11.front().curStr,
+		C10N11.front().curStr,C11N11.front().curStr,C12N11.front().curStr },
+		{ C1N11,C2N11,C3N11,C4N11,C5N11,C6N11,C7N11,C8N11,C9N11,C10N11,C11N11,C12N11 }
+	);
 	// This is a similar take on the previous NFA that had multiple of 2 or 3 except with decimal
 	// accept: {2468}, {222}, {24}, {68}, {666}, {693}; does not accept: {23}, {2469}, {932}
 	NFA<int, int>* N12 = new NFA<int, int>(
@@ -1437,6 +1517,14 @@ int main(void) {
 	list<Config<int>> C10N12 = createTrace(list<int>{-1,0,2,2,2}, list<int>{6,3,2});
 	list<Config<int>> C11N12 = createTrace(list<int>{-1,0,2,2}, list<int>{6,8});
 	list<Config<int>> C12N12 = createTrace(list<int>{-1,0,1,1}, list<int>{6,9});
+	oracleLoop(
+		N12, "N12",
+		{ C1N12.front().curStr,C2N12.front().curStr,C3N12.front().curStr,C4N12.front().curStr,
+		C5N12.front().curStr,C6N12.front().curStr,C7N12.front().curStr,C8N12.front().curStr,C9N12.front().curStr,
+		C10N12.front().curStr,C11N12.front().curStr,C12N12.front().curStr },
+		{ C1N12,C2N12,C3N12,C4N12,C5N12,C6N12,C7N12,C8N12,C9N12,C10N12,C11N12,C12N12 }
+	);
+
 	return 0;
 }
 /*
@@ -1810,4 +1898,70 @@ list<Config<State>> createTrace(list<State> states, list<int> str) {
 		}
 	}
 	return lc;
+}
+
+template<typename State, typename C>
+bool oracle(NFA<State, C>* nfa, list<int> str, list<Config<State>> ts) {
+	State qi = nfa->q0;
+	list<State> possibleStates1;
+	list<State> possibleStates2;
+	list<int> nextStr = str;
+	// check that the first state and string passed to the function match with the first config in the list
+	if ((!(ts.front().curS == qi) || (!(ts.front().curStr == str)))) { 
+		return false;
+	}
+	// pop off first configuration out of the trace
+	if (ts.empty())
+		return false;
+	else
+		ts.pop_front();
+	while (!ts.empty()) {
+		if (!str.empty()) {
+			possibleStates1 = nfa->d1(qi, str.front());
+		}
+		else {
+			possibleStates1 = {};
+		}
+		possibleStates2 = nfa->d2(qi);
+		auto found1 = find(possibleStates1.begin(), possibleStates1.end(), ts.front().curS);
+		auto found2 = find(possibleStates2.begin(), possibleStates2.end(), ts.front().curS);
+		if (found1 != possibleStates1.end()) {
+			if (!nextStr.empty()){
+				nextStr.pop_front();
+			}
+			if (ts.front().curStr == nextStr) {
+				if (!str.empty()) {
+					str.pop_front();
+				}
+				qi = *found1;
+				ts.pop_front();
+			}
+			else {
+				qi = *found2;
+				ts.pop_front();
+			}
+		}
+		else if ((found2 != possibleStates2.end()) && (ts.front().curStr == str)) {
+			qi = *found2;
+			ts.pop_front();
+		}
+		else {
+			return false;
+		}
+	}
+	return true;
+}
+template<typename State, typename C>
+void oracleLoop(NFA<State, C>* nfa, string name, list<list<int>> strs, list<list<Config<State>>> ts) {
+	list<list<int>>::iterator strsIt = strs.begin();
+	int count = 1;
+	for (auto i : ts) {
+		if (!oracle(nfa, *strsIt, i)) {
+				cout << "### FAIL-oracle at C"<< count << name << " ###" << endl;
+				printConfigList(i);
+				cout << endl;
+		}
+		strsIt++;
+		count++;
+	}
 }
