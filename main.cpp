@@ -8,9 +8,12 @@
 #include <typeinfo>
 #include "DFA.h"
 #include "NFA.h"
+#include "TT.h"
 #include "DFA.cpp"
 #include "NFA.cpp"
+#include "TT.cpp"
 using namespace std;
+
 template<typename State>
 class Config {
 public:
@@ -1524,7 +1527,21 @@ int main(void) {
 		C10N12.front().curStr,C11N12.front().curStr,C12N12.front().curStr },
 		{ C1N12,C2N12,C3N12,C4N12,C5N12,C6N12,C7N12,C8N12,C9N12,C10N12,C11N12,C12N12 }
 	);
-
+	// testing out the tree
+	TT<int,int> *tt9 = new TT<int, int>(N9->q0, N9->d1, N9->d2);
+	// list<pair<pair<function<list<State>(State, C)>, function<list<State>(State)>>, TT<State, C>>> treeL;
+	list<int> ret = tt9->treeL.front().first.first(tt9->branch,1);
+	cout << tt9->branch;
+		cout << endl;
+	for (auto i : ret) {
+		cout << i;
+	}
+	tt9->treeL.front().second = new TT<int, int>(ret.front(), N9->d1, N9->d2);
+	ret = tt9->treeL.front().second->treeL.front().first.first(1,1);
+	cout << endl;
+	for (auto i : ret) {
+		cout << i;
+	}
 	return 0;
 }
 /*

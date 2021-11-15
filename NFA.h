@@ -14,7 +14,7 @@ public:
 	//constructor
 	NFA(function<bool(State)> initQ, State initq0, function<list<State>(State, C)> initD1, 
 		function<list<State>(State)> initD2, function<bool(State)> initF);
-	bool accept(list<int> str);
+	//bool accept(list<int> str);
 	//fields
 	function<bool(State)> Q;			// function pointer representing the set of states
 	State q0;					// q0 is of type State and holds the first state of the DFA

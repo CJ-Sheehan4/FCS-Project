@@ -12,7 +12,7 @@ NFA<State, C>::NFA(function<bool(State)> initQ, State initq0, function<list<Stat
 	d1 = initD1;
 	d2 = initD2;
 	F = initF;
-}
+}/*
 // Task 10 - accepts function
 template<typename State, typename C>
 bool NFA<State, C>::accept(list<int> str) {
@@ -25,4 +25,4 @@ bool NFA<State, C>::accept(list<int> str) {
 		return true;
 	else
 		return false;
-}
+}*/
