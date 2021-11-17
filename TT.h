@@ -7,6 +7,7 @@
 #include <functional>
 #include <list>
 #include <utility>
+#include <memory>
 using namespace std;
 
 template<typename State, typename C>
@@ -14,10 +15,17 @@ class TT {
 public:
 	// default
 	TT();
-	//constructor
+	// constructor
 	TT(State initBranch, function<list<State>(State, C)> mC, function<list<State>(State)>mE);
+	// helper
+	list<shared_ptr<TT<State, C>>> push(list<list<State>> next);
+	void printTreeL(void);
+	list<shared_ptr<TT<State, C>>> createTreeL(C c);
+	list<list<shared_ptr<TT<State, C>>>> nextLayer(C c);
+	// fields
 	State branch;
-	list<pair<pair<function<list<State>(State, C)>, function<list<State>(State)>>, TT<State, C>*>> treeL;
+	pair<function<list<State>(State, C)>, function<list<State>(State)>> d;
+	list<shared_ptr<TT<State, C>>> treeL;
 	bool accept;
 	bool reject;
 };

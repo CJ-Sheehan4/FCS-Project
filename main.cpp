@@ -6,6 +6,7 @@
 #include <optional>
 #include <algorithm>
 #include <typeinfo>
+#include <memory>
 #include "DFA.h"
 #include "NFA.h"
 #include "TT.h"
@@ -73,6 +74,7 @@ template<typename State, typename C>
 bool oracle(NFA<State, C>* nfa, list<int> str, list<Config<State>> ts);
 template<typename State, typename C>
 void oracleLoop(NFA<State, C>* nfa, string name, list<list<int>> strs, list<list<Config<State>>> ts);
+
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
 		'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
@@ -1527,20 +1529,1438 @@ int main(void) {
 		C10N12.front().curStr,C11N12.front().curStr,C12N12.front().curStr },
 		{ C1N12,C2N12,C3N12,C4N12,C5N12,C6N12,C7N12,C8N12,C9N12,C10N12,C11N12,C12N12 }
 	);
-	// testing out the tree
-	TT<int,int> *tt9 = new TT<int, int>(N9->q0, N9->d1, N9->d2);
-	// list<pair<pair<function<list<State>(State, C)>, function<list<State>(State)>>, TT<State, C>>> treeL;
-	list<int> ret = tt9->treeL.front().first.first(tt9->branch,1);
-	cout << tt9->branch;
-		cout << endl;
-	for (auto i : ret) {
-		cout << i;
+	//
+	// 
+	NFA<int, int>* N13 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 0)
+				return list<int>{1};
+			else if (s == 1 && c == 1)
+				return list<int>{2};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			if (s == 0)
+				return list<int>{1};
+			else
+				return list<int>{};
+		},
+			[](int s) {return s == 2; }
+		);
+
+	//
+	//
+	NFA<int, int>* N14 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 1)
+				return list<int>{1};
+			else if (s == 1 && c == 1)
+				return list<int>{1};
+			else if (s == 2 && c == 0)
+				return list<int>{2};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			if (s == 1)
+				return list<int>{2};
+			else
+				return list<int>{};
+		},
+			[](int s) {return s == 2; }
+		);
+	/*
+		TASK 29 - For each example NFA, write a half-dozen trace trees of their behavior.
+	*/
+
+	// TT for NFA: N1 
+	// str: {1011}
+	shared_ptr<TT<int,int>> tt1Root =  make_shared<TT<int, int>>(N1->q0, N1->d1, N1->d2);
+	tt1Root->createTreeL(1);
+	//cout << "Root:"<< tt1Root->branch << endl;
+	bool stop = false;
+	for (auto i0 : tt1Root->treeL) {
+		i0->createTreeL(0);
+		//cout << "L1:" << (*i0)->branch << endl;
+		for (auto i1 : i0->treeL) {
+			if (i1->branch == 2 && stop == false) {
+				stop = true;
+			}
+			else {
+				i1->createTreeL(1);
+			}
+			//cout << "----L2:" << (*i1)->branch << endl;
+			for (auto i2 : i1->treeL) {
+				i2->createTreeL(1);
+				//cout << "--------L3:" << (*i2)->branch << endl;
+				for (auto i3 : i2->treeL) {
+					if (i3->branch == 1) {
+						i3->push({{i3->d.second(1)}});
+					}
+					if (i3->branch == 2) {
+						i3->push({{i3->d.first(2,1)}});
+					}
+					//cout << "------------L4:" << i3->branch << endl;
+					for (auto i4 : i3->treeL) {
+						//cout << "----------------L5:" << i4->branch << endl;
+					}
+				}
+			}
+		}
+
 	}
-	tt9->treeL.front().second = new TT<int, int>(ret.front(), N9->d1, N9->d2);
-	ret = tt9->treeL.front().second->treeL.front().first.first(1,1);
-	cout << endl;
-	for (auto i : ret) {
-		cout << i;
+	// TT for NFA: N1 
+	// str: {111}
+	shared_ptr<TT<int, int>> tt2Root = make_shared<TT<int, int>>(N1->q0, N1->d1, N1->d2);
+	tt2Root->createTreeL(1);
+	//cout << "Root:" << tt2Root->branch << endl;
+	for (auto i0 : tt2Root->treeL) {
+		i0->createTreeL(1);
+		//cout << "L1:" << i0->branch << endl;
+		for (auto i1 : i0->treeL) {
+			i1->createTreeL(1);
+			//cout << "----L2:" << i1->branch << endl;
+			for (auto i2 : i1->treeL) {
+				if (i2->branch == 1) {
+					i2->push({ {i2->d.second(1)} });
+				}
+				if (i2->branch == 2) {
+					i2->push({ {i2->d.first(2,1)} });
+				}
+				if (i2->branch == 3) {
+					i2->push({ {i2->d.first(3,1)} });
+				}
+				//cout << "--------L3:" << i2->branch << endl;
+				for (auto i3 : i2->treeL) {
+					//cout << "------------L4:" << i3->branch << endl;
+				}
+			}
+		}
+
+	}
+	// TT for NFA: N1 
+	// str: {110}
+	shared_ptr<TT<int, int>> tt3Root = make_shared<TT<int, int>>(N1->q0, N1->d1, N1->d2);
+	tt3Root->createTreeL(1);
+	//cout << "Root:" << tt3Root->branch << endl;
+	for (auto i0 : tt3Root->treeL) {
+		i0->createTreeL(1);
+		//cout << "L1:" << i0->branch << endl;
+		for (auto i1 : i0->treeL) {
+			if (i1->branch == 2) {
+				i1->push({ {i1->d.first(2,1)} });
+			}
+			else {
+				i1->createTreeL(0);
+			}
+			//cout << "----L2:" << i1->branch << endl;
+			for (auto i2 : i1->treeL) {
+				if (i2->branch == 3) {
+					i2->push({ {i2->d.first(3,0)} });
+				}
+				//cout << "--------L3:" << i2->branch << endl;
+				for (auto i3 : i2->treeL) {
+					//cout << "------------L4:" << i3->branch << endl;
+				}
+			}
+		}
+
+	}
+	// TT for NFA: N1 
+	// str: {101010}
+	shared_ptr<TT<int, int>> tt4Root = make_shared<TT<int, int>>(N1->q0, N1->d1, N1->d2);
+	tt4Root->createTreeL(1);
+	//cout << "Root:" << tt4Root->branch << endl;
+	int num = 0;
+	int num1 = 0;
+	for (auto i1 : tt4Root->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			if ((i2->branch) == 2 && (num <= 1)) {
+				i2->push({ {i2->d.first(2,0)} });
+				
+			}
+			else {
+				i2->createTreeL(1);
+			}
+			num++;
+			//cout << "----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "--------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					if ((i4->branch) == 2 && (num1 == 1)) {
+						i4->push({ {i4->d.first(2,0)} });
+
+					}
+					else {
+						i4->createTreeL(1);
+					}
+					num1++;
+					//cout << "------------L4:" << i4->branch << endl;
+					for (auto i5 : i4->treeL) {
+						i5->createTreeL(0);
+						//cout << "----------------L5:" << i5->branch << endl;
+						for (auto i6 : i5->treeL) {
+							//cout << "--------------------L6:" << i6->branch << endl;
+						}
+					}
+				}
+			}
+		}
+
+	}
+	// TT for NFA: N1 
+	// str: {11}
+	shared_ptr<TT<int, int>> tt5Root = make_shared<TT<int, int>>(N1->q0, N1->d1, N1->d2);
+	tt5Root->createTreeL(1);
+	//cout << "Root:" << tt3Root->branch << endl;
+	for (auto i1 : tt5Root->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			if (i2->branch == 2) {
+				i2->push({ {i2->d.first(2,1)} });
+			}
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+
+	}
+	// TT for NFA: N1 
+	// str: {011}
+	shared_ptr<TT<int, int>> tt6Root = make_shared<TT<int, int>>(N1->q0, N1->d1, N1->d2);
+	tt6Root->createTreeL(0);
+	//cout << "Root:" << tt6Root->branch << endl;
+	for (auto i1 : tt6Root->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				if (i3->branch == 2) {
+					i3->push({ {i3->d.first(2,1)} });
+				}
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					//cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+
+	}
+	// TT for NFA: N2 
+	// str: {100}
+	shared_ptr<TT<int, int>> tt1RootN2 = make_shared<TT<int, int>>(N2->q0, N2->d1, N2->d2);
+	tt1RootN2->createTreeL(1);
+	//cout << "Root:" << tt1RootN2->branch << endl;
+	for (auto i1 : tt1RootN2->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+
+	}
+	// TT for NFA: N2 
+	// str: {101}
+	shared_ptr<TT<int, int>> tt2RootN2 = make_shared<TT<int, int>>(N2->q0, N2->d1, N2->d2);
+	tt2RootN2->createTreeL(1);
+	//cout << "Root:" << tt2RootN2->branch << endl;
+	for (auto i1 : tt2RootN2->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	
+	// TT for NFA: N2 
+	// str: {111}
+	shared_ptr<TT<int, int>> tt3RootN2 = make_shared<TT<int, int>>(N2->q0, N2->d1, N2->d2);
+	tt3RootN2->createTreeL(1);
+	//cout << "Root:" << tt3RootN2->branch << endl;
+	for (auto i1 : tt3RootN2->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N2 
+	// str: {0100}
+	shared_ptr<TT<int, int>> tt4RootN2 = make_shared<TT<int, int>>(N2->q0, N2->d1, N2->d2);
+	tt4RootN2->createTreeL(0);
+	//cout << "Root:" << tt4RootN2->branch << endl;
+	for (auto i1 : tt4RootN2->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					
+					//cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+	}
+	// TT for NFA: N2 
+	// str: {0110}
+	shared_ptr<TT<int, int>> tt5RootN2 = make_shared<TT<int, int>>(N2->q0, N2->d1, N2->d2);
+	tt5RootN2->createTreeL(0);
+	//cout << "Root:" << tt5RootN2->branch << endl;
+	for (auto i1 : tt5RootN2->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+				//	cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+	}
+	// TT for NFA: N2 
+	// str: {}
+	shared_ptr<TT<int, int>> tt6RootN2 = make_shared<TT<int, int>>(N2->q0, N2->d1, N2->d2);
+	tt6RootN2->createTreeL(0);
+	//cout << "Root:" << tt6RootN2->branch << endl;
+	for (auto i1 : tt6RootN2->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					i4->createTreeL(0);
+					//cout << "---------------L4:" << i4->branch << endl;
+					for (auto i5 : i4->treeL) {
+						//cout << "--------------------L5:" << i5->branch << endl;
+					}
+				}
+			}
+		}
+	}
+	// TT for NFA: N3
+	// str: {00}
+	shared_ptr<TT<int, int>> tt1RootN3 = make_shared<TT<int, int>>(N3->q0, N3->d1, N3->d2);
+	tt1RootN3->createTreeL(0);
+	//cout << "Root:" << tt1RootN3->branch << endl;
+	for (auto i1 : tt1RootN3->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N3
+	// str: {000}
+	shared_ptr<TT<int, int>> tt2RootN3 = make_shared<TT<int, int>>(N3->q0, N3->d1, N3->d2);
+	tt2RootN3->createTreeL(0);
+	//cout << "Root:" << tt2RootN3->branch << endl;
+	for (auto i1 : tt2RootN3->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					//cout << "--------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+	}
+	// TT for NFA: N3
+	// str: {0000}
+	shared_ptr<TT<int, int>> tt3RootN3 = make_shared<TT<int, int>>(N3->q0, N3->d1, N3->d2);
+	tt3RootN3->createTreeL(0);
+	//cout << "Root:" << tt3RootN3->branch << endl;
+	for (auto i1 : tt3RootN3->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					i4->createTreeL(0);
+					//cout << "--------------L4:" << i4->branch << endl;
+					for (auto i5 : i4->treeL) {
+						//cout << "-------------------L5:" << i5->branch << endl;
+					}
+				}
+			}
+		}
+	}
+	// TT for NFA: N3
+	// str: {0}
+	// rejects
+	shared_ptr<TT<int, int>> tt4RootN3 = make_shared<TT<int, int>>(N3->q0, N3->d1, N3->d2);
+	tt4RootN3->createTreeL(0);
+	//cout << "Root:" << tt4RootN3->branch << endl;
+	for (auto i1 : tt4RootN3->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "FAIL" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N3
+	// str: {000000}
+	shared_ptr<TT<int, int>> tt5RootN3 = make_shared<TT<int, int>>(N3->q0, N3->d1, N3->d2);
+	tt5RootN3->createTreeL(0);
+	//cout << "Root:" << tt5RootN3->branch << endl;
+	for (auto i1 : tt5RootN3->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					i4->createTreeL(0);
+					//cout << "---------------L4:" << i4->branch << endl;
+					for (auto i5 : i4->treeL) {
+						i5->createTreeL(0);
+						//cout << "-------------------------L5:" << i5->branch << endl;
+						for (auto i6 : i5->treeL) {
+							i6->createTreeL(0);
+							//cout << "------------------------------L6:" << i6->branch << endl;
+							for (auto i7 : i6->treeL) {
+								//cout << "-----------------------------------L7:" << i7->branch << endl;
+							}
+						}
+					}
+				}
+				
+			}
+		}
+	}
+	// TT for NFA: N3
+	// str: {empty}
+	// rejects
+	shared_ptr<TT<int, int>> tt6RootN3 = make_shared<TT<int, int>>(N3->q0, N3->d1, N3->d2);
+	tt6RootN3->createTreeL({});
+	//cout << "Root:" << tt6RootN3->branch << endl;
+	for (auto i1 : tt6RootN3->treeL) {
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N4
+	// str: {0}
+	shared_ptr<TT<int, int>> tt1RootN4 = make_shared<TT<int, int>>(N4->q0, N4->d1, N4->d2);
+	tt1RootN4->createTreeL(0);
+	//cout << "Root:" << tt1RootN4->branch << endl;
+	for (auto i1 : tt1RootN4->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N4
+	// str: {00}
+	shared_ptr<TT<int, int>> tt2RootN4 = make_shared<TT<int, int>>(N4->q0, N4->d1, N4->d2);
+	tt2RootN4->createTreeL(0);
+	//cout << "Root:" << tt2RootN4->branch << endl;
+	for (auto i1 : tt2RootN4->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					//cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+	}
+	// TT for NFA: N4
+	// str: {100}
+	shared_ptr<TT<int, int>> tt3RootN4 = make_shared<TT<int, int>>(N4->q0, N4->d1, N4->d2);
+	tt3RootN4->createTreeL(1);
+	//cout << "Root:" << tt3RootN4->branch << endl;
+	for (auto i1 : tt3RootN4->treeL) {
+		if (i1->branch == 2) {
+			i1->push({ {i1->d.first(2,1)},{i1->d.second(2)} });
+		}
+		else {
+			i1->createTreeL(0);
+		}
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N4
+	// str: {1010}
+	shared_ptr<TT<int, int>> tt4RootN4 = make_shared<TT<int, int>>(N4->q0, N4->d1, N4->d2);
+	tt4RootN4->createTreeL(1);
+	//cout << "Root:" << tt4RootN4->branch << endl;
+	for (auto i1 : tt4RootN4->treeL) {
+		if (i1->branch == 2) {
+			i1->push({ {i1->d.first(2,1)},{i1->d.second(2)} });
+		}
+		else {
+			i1->createTreeL(0);
+		}
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					//cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+	}
+	// TT for NFA: N4
+	// str: {110}
+	shared_ptr<TT<int, int>> tt5RootN4 = make_shared<TT<int, int>>(N4->q0, N4->d1, N4->d2);
+	tt5RootN4->createTreeL(1);
+	//cout << "Root:" << tt5RootN4->branch << endl;
+	for (auto i1 : tt5RootN4->treeL) {
+		if (i1->branch == 2) {
+			i1->push({ {i1->d.first(2,1)},{i1->d.second(2)} });
+		}
+		else {
+			i1->createTreeL(1);
+		}
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+				
+			}
+		}
+	}
+	// TT for NFA: N4
+	// str: {01}
+	// rejects
+	shared_ptr<TT<int, int>> tt6RootN4 = make_shared<TT<int, int>>(N4->q0, N4->d1, N4->d2);
+	tt6RootN4->createTreeL(0);
+	//cout << "Root:" << tt6RootN4->branch << endl;
+	for (auto i1 : tt6RootN4->treeL) {
+		if (i1->branch == 2) {
+			i1->push({ {i1->d.first(2,0)},{i1->d.second(2)} });
+		}
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			if (i2->branch == 0) {
+				i2->push({ {i2->d.first(0,1)},{i2->d.second(0)} });
+			}
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N13
+	// str: {01}
+	shared_ptr<TT<int, int>> tt1RootN13 = make_shared<TT<int, int>>(N13->q0, N13->d1, N13->d2);
+	tt1RootN13->createTreeL(0);
+	//cout << "Root:" << tt1RootN13->branch << endl;
+	int count =0;
+	for (auto i1 : tt1RootN13->treeL) {
+		if (i1->branch == 1 && (count == 0)) {
+			i1->push({ {i1->d.first(1,0)},{i1->d.second(1)} });
+			count++;
+		}
+		else {
+			i1->createTreeL(1);
+		}
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N13
+	// str: {1}
+	shared_ptr<TT<int, int>> tt2RootN13 = make_shared<TT<int, int>>(N13->q0, N13->d1, N13->d2);
+	tt2RootN13->createTreeL(1);
+	//cout << "Root:" << tt2RootN13->branch << endl;
+	count = 0;
+	for (auto i1 : tt2RootN13->treeL) {
+		if (i1->branch == 1 && (count == 0)) {
+			i1->push({ {i1->d.first(1,1)},{i1->d.second(1)} });
+			count++;
+		}
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+		//	cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N13
+	// str: {0}
+	// rejects
+	shared_ptr<TT<int, int>> tt3RootN13 = make_shared<TT<int, int>>(N13->q0, N13->d1, N13->d2);
+	tt3RootN13->createTreeL(0);
+	//cout << "Root:" << tt3RootN13->branch << endl;
+	count = 0;
+	for (auto i1 : tt3RootN13->treeL) {
+		if (i1->branch == 1 && (count == 0)) {
+			i1->push({ {i1->d.first(1,{})},{i1->d.second(1)} });
+			count++;
+		}
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N13
+	// str: {00}
+	// rejects
+	shared_ptr<TT<int, int>> tt4RootN13 = make_shared<TT<int, int>>(N13->q0, N13->d1, N13->d2);
+	tt4RootN13->createTreeL(0);
+	//cout << "Root:" << tt4RootN13->branch << endl;
+	count = 0;
+	for (auto i1 : tt4RootN13->treeL) {
+		if (i1->branch == 1 && (count == 0)) {
+			i1->push({ {i1->d.first(1,{})},{i1->d.second(1)} });
+			count++;
+		}
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N13
+	// str: {11}
+	// rejects
+	shared_ptr<TT<int, int>> tt5RootN13 = make_shared<TT<int, int>>(N13->q0, N13->d1, N13->d2);
+	tt5RootN13->createTreeL(1);
+	//cout << "Root:" << tt5RootN13->branch << endl;
+	count = 0;
+	for (auto i1 : tt5RootN13->treeL) {
+		if (i1->branch == 1 && (count == 0)) {
+			i1->push({ {i1->d.first(1,1)},{i1->d.second(1)} });
+			count++;
+		}
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N13
+	// str: {10}
+	// rejects
+	shared_ptr<TT<int, int>> tt6RootN13 = make_shared<TT<int, int>>(N13->q0, N13->d1, N13->d2);
+	tt6RootN13->createTreeL(1);
+	//cout << "Root:" << tt6RootN13->branch << endl;
+	count = 0;
+	for (auto i1 : tt6RootN13->treeL) {
+		if (i1->branch == 1 && (count == 0)) {
+			i1->push({ {i1->d.first(1,1)},{i1->d.second(1)} });
+			count++;
+		}
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N6
+	// str: {11}
+	shared_ptr<TT<int, int>> tt1RootN6 = make_shared<TT<int, int>>(N6->q0, N6->d1, N6->d2);
+	tt1RootN6->createTreeL(1);
+	///cout << "Root:" << tt1RootN6->branch << endl;
+	count = 0;
+	for (auto i1 : tt1RootN6->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(1);
+				//cout << "----------L2:" << i3->branch << endl;
+			}
+		}
+
+	}
+	// TT for NFA: N6
+	// str: {00}
+	shared_ptr<TT<int, int>> tt2RootN6 = make_shared<TT<int, int>>(N6->q0, N6->d1, N6->d2);
+	tt2RootN6->createTreeL(0);
+	//cout << "Root:" << tt2RootN6->branch << endl;
+	count = 0;
+	for (auto i1 : tt2RootN6->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+
+	}
+	// TT for NFA: N6
+	// str: {011}
+	shared_ptr<TT<int, int>> tt3RootN6 = make_shared<TT<int, int>>(N6->q0, N6->d1, N6->d2);
+	tt3RootN6->createTreeL(0);
+	//cout << "Root:" << tt3RootN6->branch << endl;
+	count = 0;
+	for (auto i1 : tt3RootN6->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(1);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					//cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+
+	}
+	// TT for NFA: N6
+	// str: {100}
+	shared_ptr<TT<int, int>> tt4RootN6 = make_shared<TT<int, int>>(N6->q0, N6->d1, N6->d2);
+	tt4RootN6->createTreeL(1);
+	//cout << "Root:" << tt4RootN6->branch << endl;
+	count = 0;
+	for (auto i1 : tt4RootN6->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					//cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+
+	}
+	// TT for NFA: N6
+	// str: {0100}
+	shared_ptr<TT<int, int>> tt5RootN6 = make_shared<TT<int, int>>(N6->q0, N6->d1, N6->d2);
+	tt5RootN6->createTreeL(0);
+	//cout << "Root:" << tt5RootN6->branch << endl;
+	count = 0;
+	for (auto i1 : tt5RootN6->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					i4->createTreeL(0);
+					//cout << "---------------L4:" << i4->branch << endl;
+					for (auto i5 : i4->treeL) {
+						//cout << "--------------------L5:" << i5->branch << endl;
+					}
+				}
+			}
+		}
+
+	}
+	// TT for NFA: N6
+	// str: {01}
+	// rejects
+	shared_ptr<TT<int, int>> tt6RootN6 = make_shared<TT<int, int>>(N6->q0, N6->d1, N6->d2);
+	tt6RootN6->createTreeL(0);
+	//cout << "Root:" << tt6RootN6->branch << endl;
+	count = 0;
+	for (auto i1 : tt6RootN6->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N7
+	// str: {00}
+	shared_ptr<TT<int, int>> tt1RootN7 = make_shared<TT<int, int>>(N7->q0, N7->d1, N7->d2);
+	tt1RootN7->createTreeL(0);
+	//cout << "Root:" << tt1RootN7->branch << endl;
+	count = 0;
+	for (auto i1 : tt1RootN7->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N7
+	// str: {01}
+	shared_ptr<TT<int, int>> tt2RootN7 = make_shared<TT<int, int>>(N7->q0, N7->d1, N7->d2);
+	tt2RootN7->createTreeL(0);
+	//cout << "Root:" << tt2RootN7->branch << endl;
+	count = 0;
+	for (auto i1 : tt2RootN7->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N7
+	// str: {10}
+	shared_ptr<TT<int, int>> tt3RootN7 = make_shared<TT<int, int>>(N7->q0, N7->d1, N7->d2);
+	tt3RootN7->createTreeL(1);
+	//cout << "Root:" << tt3RootN7->branch << endl;
+	count = 0;
+	for (auto i1 : tt3RootN7->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N7
+	// str: {11}
+	shared_ptr<TT<int, int>> tt4RootN7 = make_shared<TT<int, int>>(N7->q0, N7->d1, N7->d2);
+	tt4RootN7->createTreeL(1);
+	//cout << "Root:" << tt4RootN7->branch << endl;
+	count = 0;
+	for (auto i1 : tt4RootN7->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N7
+	// str: {1}
+	// rejects
+	shared_ptr<TT<int, int>> tt5RootN7 = make_shared<TT<int, int>>(N7->q0, N7->d1, N7->d2);
+	tt5RootN7->createTreeL(1);
+	//cout << "Root:" << tt5RootN7->branch << endl;
+	count = 0;
+	for (auto i1 : tt5RootN7->treeL) {
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N7
+	// str: {111}
+	// reject
+	shared_ptr<TT<int, int>> tt6RootN7 = make_shared<TT<int, int>>(N7->q0, N7->d1, N7->d2);
+	tt6RootN7->createTreeL(1);
+	//cout << "Root:" << tt6RootN7->branch << endl;
+	count = 0;
+	for (auto i1 : tt6RootN7->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N8
+	// str: {0}
+	shared_ptr<TT<int, int>> tt1RootN8 = make_shared<TT<int, int>>(N8->q0, N8->d1, N8->d2);
+	tt1RootN8->createTreeL(0);
+	//cout << "Root:" << tt1RootN8->branch << endl;
+	count = 0;
+	for (auto i1 : tt1RootN8->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N8
+	// str: {11}
+	shared_ptr<TT<int, int>> tt2RootN8 = make_shared<TT<int, int>>(N8->q0, N8->d1, N8->d2);
+	tt2RootN8->createTreeL(1);
+	//cout << "Root:" << tt2RootN8->branch << endl;
+	count = 0;
+	for (auto i1 : tt2RootN8->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				///cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N8
+	// str: {000}
+	shared_ptr<TT<int, int>> tt3RootN8 = make_shared<TT<int, int>>(N8->q0, N8->d1, N8->d2);
+	tt3RootN8->createTreeL(0);
+	///cout << "Root:" << tt3RootN8->branch << endl;
+	count = 0;
+	for (auto i1 : tt3RootN8->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					//cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+	}
+	// TT for NFA: N8
+	// str: {1111}
+	shared_ptr<TT<int, int>> tt4RootN8 = make_shared<TT<int, int>>(N8->q0, N8->d1, N8->d2);
+	tt4RootN8->createTreeL(1);
+	//cout << "Root:" << tt4RootN8->branch << endl;
+	count = 0;
+	for (auto i1 : tt4RootN8->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(1);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					i4->createTreeL(1);
+					//cout << "---------------L4:" << i4->branch << endl;
+					for (auto i5 : i4->treeL) {
+						//cout << "--------------------L5:" << i5->branch << endl;
+					}
+				}
+			}
+		}
+	}
+	// TT for NFA: N8
+	// str: {00}
+	shared_ptr<TT<int, int>> tt5RootN8 = make_shared<TT<int, int>>(N8->q0, N8->d1, N8->d2);
+	tt5RootN8->createTreeL(0);
+	//cout << "Root:" << tt5RootN8->branch << endl;
+	count = 0;
+	for (auto i1 : tt5RootN8->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N8
+	// str: {1}
+	shared_ptr<TT<int, int>> tt6RootN8 = make_shared<TT<int, int>>(N8->q0, N8->d1, N8->d2);
+	tt6RootN8->createTreeL(1);
+	//cout << "Root:" << tt6RootN8->branch << endl;
+	count = 0;
+	for (auto i1 : tt6RootN8->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N9
+	// str: {11}
+	shared_ptr<TT<int, int>> tt1RootN9 = make_shared<TT<int, int>>(N9->q0, N9->d1, N9->d2);
+	tt1RootN9->createTreeL(1);
+	//cout << "Root:" << tt1RootN9->branch << endl;
+	count = 0;
+	for (auto i1 : tt1RootN9->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N9
+	// str: {111}
+	shared_ptr<TT<int, int>> tt2RootN9 = make_shared<TT<int, int>>(N9->q0, N9->d1, N9->d2);
+	tt2RootN9->createTreeL(1);
+	//cout << "Root:" << tt2RootN9->branch << endl;
+	count = 0;
+	for (auto i1 : tt2RootN9->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N9
+	// str: {1011}
+	shared_ptr<TT<int, int>> tt3RootN9 = make_shared<TT<int, int>>(N9->q0, N9->d1, N9->d2);
+	tt3RootN9->createTreeL(1);
+	//cout << "Root:" << tt3RootN9->branch << endl;
+	count = 0;
+	for (auto i1 : tt3RootN9->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(1);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					//cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+	}
+	// TT for NFA: N9
+	// str: {101}
+	shared_ptr<TT<int, int>> tt4RootN9 = make_shared<TT<int, int>>(N9->q0, N9->d1, N9->d2);
+	tt4RootN9->createTreeL(1);
+	//cout << "Root:" << tt4RootN9->branch << endl;
+	count = 0;
+	for (auto i1 : tt4RootN9->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N9
+	// str: {10101}
+	shared_ptr<TT<int, int>> tt5RootN9 = make_shared<TT<int, int>>(N9->q0, N9->d1, N9->d2);
+	tt5RootN9->createTreeL(1);
+	//cout << "Root:" << tt5RootN9->branch << endl;
+	count = 0;
+	for (auto i1 : tt5RootN9->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(0);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					i4->createTreeL(1);
+					//cout << "---------------L4:" << i4->branch << endl;
+					for (auto i5 : i4->treeL) {
+						//cout << "--------------------L5:" << i5->branch << endl;
+					}
+				}
+			}
+		}
+	}
+	// TT for NFA: N9
+	// str: {10}
+	// rejects
+	shared_ptr<TT<int, int>> tt6RootN9 = make_shared<TT<int, int>>(N9->q0, N9->d1, N9->d2);
+	tt6RootN9->createTreeL(1);
+	//cout << "Root:" << tt6RootN9->branch << endl;
+	count = 0;
+	for (auto i1 : tt6RootN9->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N10
+	// str: {empty}
+	shared_ptr<TT<int, int>> tt1RootN10 = make_shared<TT<int, int>>(N10->q0, N10->d1, N10->d2);
+	tt1RootN10->createTreeL({});
+	//cout << "Root:" << tt1RootN10->branch << endl;
+	count = 0;
+	for (auto i1 : tt1RootN10->treeL) {
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N10
+	// str: {0}
+	shared_ptr<TT<int, int>> tt2RootN10 = make_shared<TT<int, int>>(N10->q0, N10->d1, N10->d2);
+	tt2RootN10->createTreeL(0);
+	//cout << "Root:" << tt2RootN10->branch << endl;
+	count = 0;
+	for (auto i1 : tt2RootN10->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N10
+	// str: {1}
+	shared_ptr<TT<int, int>> tt3RootN10 = make_shared<TT<int, int>>(N10->q0, N10->d1, N10->d2);
+	tt3RootN10->createTreeL(1);
+	//cout << "Root:" << tt3RootN10->branch << endl;
+	count = 0;
+	for (auto i1 : tt3RootN10->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N10
+	// str: {10}
+	shared_ptr<TT<int, int>> tt4RootN10 = make_shared<TT<int, int>>(N10->q0, N10->d1, N10->d2);
+	tt4RootN10->createTreeL(1);
+	//cout << "Root:" << tt4RootN10->branch << endl;
+	count = 0;
+	for (auto i1 : tt4RootN10->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N10
+	// str: {01}
+	shared_ptr<TT<int, int>> tt5RootN10 = make_shared<TT<int, int>>(N10->q0, N10->d1, N10->d2);
+	tt5RootN10->createTreeL(0);
+	//cout << "Root:" << tt5RootN10->branch << endl;
+	count = 0;
+	for (auto i1 : tt5RootN10->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(1);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N10
+	// str: {101}
+	shared_ptr<TT<int, int>> tt6RootN10 = make_shared<TT<int, int>>(N10->q0, N10->d1, N10->d2);
+	tt6RootN10->createTreeL(1);
+	//cout << "Root:" << tt6RootN10->branch << endl;
+	count = 0;
+	for (auto i1 : tt6RootN10->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(0);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				i3->createTreeL(1);
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					//cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+	}
+	// TT for NFA: N14
+	// str: {111}
+	shared_ptr<TT<int, int>> tt1RootN14 = make_shared<TT<int, int>>(N14->q0, N14->d1, N14->d2);
+	tt1RootN14->createTreeL(1);
+	//cout << "Root:" << tt1RootN14->branch << endl;
+	count = 0;
+	for (auto i1 : tt1RootN14->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			if (i2->branch == 2) {
+				i2->push({ {i2->d.first(2,1)}, {i2->d.second(2)} });
+			}
+			else {
+				i2->createTreeL(1);
+			}
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				if (i3->branch == 2) {
+					i3->push({ {i3->d.first(2,1)}, {i3->d.second(2)} });
+				}
+				else {
+					i3->createTreeL({});
+				}
+				///cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					//cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+	}
+	// TT for NFA: N14
+	// str: {1}
+	shared_ptr<TT<int, int>> tt2RootN14 = make_shared<TT<int, int>>(N14->q0, N14->d1, N14->d2);
+	tt2RootN14->createTreeL(1);
+	//cout << "Root:" << tt2RootN14->branch << endl;
+	count = 0;
+	for (auto i1 : tt2RootN14->treeL) {
+		i1->createTreeL({});
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N14
+	// str: {10}
+	shared_ptr<TT<int, int>> tt3RootN14 = make_shared<TT<int, int>>(N14->q0, N14->d1, N14->d2);
+	tt3RootN14->createTreeL(1);
+	//cout << "Root:" << tt3RootN14->branch << endl;
+	count = 0;
+	for (auto i1 : tt3RootN14->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL({});
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N14
+	// str: {110}
+	shared_ptr<TT<int, int>> tt4RootN14 = make_shared<TT<int, int>>(N14->q0, N14->d1, N14->d2);
+	tt4RootN14->createTreeL(1);
+	//cout << "Root:" << tt4RootN14->branch << endl;
+	count = 0;
+	for (auto i1 : tt4RootN14->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			if (i2->branch == 2) {
+				i2->push({ {i2->d.first(2,1)}, {i2->d.second(2)} });
+			}
+			else {
+				i2->createTreeL(0);
+			}
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				if (i3->branch == 2) {
+					i3->push({ {i3->d.first(2,0)}, {i3->d.second(2)} });
+				}
+				//cout << "----------L3:" << i3->branch << endl;
+				for (auto i4 : i3->treeL) {
+					//cout << "---------------L4:" << i4->branch << endl;
+				}
+			}
+		}
+	}
+	// TT for NFA: N14
+	// str: {11}
+	shared_ptr<TT<int, int>> tt5RootN14 = make_shared<TT<int, int>>(N14->q0, N14->d1, N14->d2);
+	tt5RootN14->createTreeL(1);
+	//cout << "Root:" << tt5RootN14->branch << endl;
+	count = 0;
+	for (auto i1 : tt5RootN14->treeL) {
+		i1->createTreeL(1);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			if (i2->branch == 2) {
+				i2->push({ {i2->d.first(2,1)}, {i2->d.second(2)} });
+			}
+			else {
+				i2->createTreeL({});
+			}
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N14
+	// str: {101}
+	// rejects
+	shared_ptr<TT<int, int>> tt6RootN14 = make_shared<TT<int, int>>(N14->q0, N14->d1, N14->d2);
+	tt6RootN14->createTreeL(1);
+	//cout << "Root:" << tt6RootN14->branch << endl;
+	count = 0;
+	for (auto i1 : tt6RootN14->treeL) {
+		i1->createTreeL(0);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			if (i2->branch == 2) {
+				i2->push({ {i2->d.first(2,0)}, {i2->d.second(2)} });
+			}
+			else {
+				i2->createTreeL(1);
+			}
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+	
+			}
+		}
+	}
+	// TT for NFA: N12
+	// str: {68}
+	shared_ptr<TT<int, int>> tt1RootN12 = make_shared<TT<int, int>>(N12->q0, N12->d1, N12->d2);
+	tt1RootN12->createTreeL({});
+	//cout << "Root:" << tt1RootN12->branch << endl;
+	count = 0;
+	for (auto i1 : tt1RootN12->treeL) {
+		i1->createTreeL(6);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(8);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N12
+	// str: {2}
+	shared_ptr<TT<int, int>> tt2RootN12 = make_shared<TT<int, int>>(N12->q0, N12->d1, N12->d2);
+	tt2RootN12->createTreeL({});
+	//cout << "Root:" << tt2RootN12->branch << endl;
+	count = 0;
+	for (auto i1 : tt2RootN12->treeL) {
+		i1->createTreeL(2);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N12
+	// str: {6}
+	shared_ptr<TT<int, int>> tt3RootN12 = make_shared<TT<int, int>>(N12->q0, N12->d1, N12->d2);
+	tt3RootN12->createTreeL({});
+	//cout << "Root:" << tt3RootN12->branch << endl;
+	count = 0;
+	for (auto i1 : tt3RootN12->treeL) {
+		i1->createTreeL(6);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+		//	cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N12
+	// str: {empty}
+	shared_ptr<TT<int, int>> tt4RootN12 = make_shared<TT<int, int>>(N12->q0, N12->d1, N12->d2);
+	tt4RootN12->createTreeL({});
+	cout << "Root:" << tt4RootN12->branch << endl;
+	//count = 0;
+	for (auto i1 : tt4RootN12->treeL) {
+		i1->createTreeL({});
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			//cout << "-----L2:" << i2->branch << endl;
+		}
+	}
+	// TT for NFA: N12
+	// str: {empty}
+	shared_ptr<TT<int, int>> tt5RootN12 = make_shared<TT<int, int>>(N12->q0, N12->d1, N12->d2);
+	tt5RootN12->createTreeL({});
+	cout << "Root:" << tt5RootN12->branch << endl;
+	count = 0;
+	for (auto i1 : tt4RootN12->treeL) {
+		i1->createTreeL(6);
+		cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(3);
+			cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				cout << "----------L3:" << i3->branch << endl;
+			}
+		}
+	}
+	// TT for NFA: N12
+	// str: {32}
+	// rejects
+	shared_ptr<TT<int, int>> tt6RootN12 = make_shared<TT<int, int>>(N12->q0, N12->d1, N12->d2);
+	tt6RootN12->createTreeL({});
+	//cout << "Root:" << tt6RootN12->branch << endl;
+	count = 0;
+	for (auto i1 : tt6RootN12->treeL) {
+		i1->createTreeL(3);
+		//cout << "L1:" << i1->branch << endl;
+		for (auto i2 : i1->treeL) {
+			i2->createTreeL(2);
+			//cout << "-----L2:" << i2->branch << endl;
+			for (auto i3 : i2->treeL) {
+				//cout << "----------L3:" << i3->branch << endl;
+			}
+		}
 	}
 	return 0;
 }
