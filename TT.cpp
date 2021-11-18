@@ -70,18 +70,6 @@ list<shared_ptr<TT<State, C>>> TT<State, C>::createTreeL(C c) {
 	return ret;
 }
 template<typename State, typename C>
-list<list<shared_ptr<TT<State, C>>>> TT<State, C>::nextLayer(C c) {
-	list<list<int>> next;
-	list<list<shared_ptr<TT<State, C>>>> ret;
-	for (auto i : treeL) {
-		next.push_back(i->d.first(i->branch, c));
-		next.push_back(i->d.second(i->branch));
-		ret.push_back(i->push(next));
-		next = {};
-	}
-	return ret;
-}
-template<typename State, typename C>
 void TT<State, C>::printCurStr(void) {
 	for (auto i : this->curStr)
 		cout << i;

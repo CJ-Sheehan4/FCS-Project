@@ -23,7 +23,6 @@ public:
 	list<shared_ptr<TT<State, C>>> push2(pair<list<State>, list<State>> next);
 	void printTreeL(void);
 	list<shared_ptr<TT<State, C>>> createTreeL(C c);
-	list<list<shared_ptr<TT<State, C>>>> nextLayer(C c);
 	void printCurStr(void);
 	// fields
 	State branch;

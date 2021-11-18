@@ -77,14 +77,8 @@ template<typename State, typename C>
 void oracleLoop(NFA<State, C>* nfa, string name, list<list<int>> strs, list<list<Config<State>>> ts);
 template<typename State, typename C>
 shared_ptr <TT<State, C>> forking(NFA<State, C>* nfa, list<int> str);
-//template<typename State, typename C>
-//void help(list<shared_ptr <TT<State, C>>> lst, list<int> str);
-//template<typename State, typename C>
-//void printFullTree(list<shared_ptr <TT<State, C>>> lst);
 template<typename State, typename C>
-list<shared_ptr <TT<State, C>>> treeLoop(list<shared_ptr <TT<State, C>>> , list <int> str);
-template<typename State, typename C>
-void treeLoop2(list<shared_ptr <TT<State, C>>> tL, list<int> str);
+void treeLoop(list<shared_ptr <TT<State, C>>> tL, list<int> str);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -2973,24 +2967,188 @@ int main(void) {
 			}
 		}
 	}
-	//list<shared_ptr <TT<int, int>>> ret = treeLoop(tt6RootN12->treeL, 6);
-	//for (auto i : ret) {
-	//	cout << i->branch;
-	//}
+	
 	/*
-		testing Task 30
-	*//*
-	shared_ptr<TT<int, int>> test = make_shared<TT<int, int>>(N12->q0, N12->d1, N12->d2);
-	list<int> charList = { 3,2 };
-	list<shared_ptr <TT<int, int>>> root;
-	root.push_back(test);
-	//help(root, charList);
-	//printFullTree(root);
-*/
-	//list<int> testStr = { 0,0,0,0 };
-	//shared_ptr<TT<int, int>> test = forking(N3, testStr);
-	list<int> testStr2 = { 1,0,1,1 };
-	shared_ptr<TT<int, int>> test = forking(N1, testStr2);
+		Task 31 - For each example NFA, write a dozen tests of their behavior.
+	*/
+	// N1 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N1, {1,0,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N1, {1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N1, {0,0,0,1,0,1});
+		//shared_ptr<TT<int, int>> test = forking(N1, {0,1,0,1,1,0});
+		//shared_ptr<TT<int, int>> test = forking(N1, {1,0,1,0,1,0});
+		//shared_ptr<TT<int, int>> test = forking(N1, {1,1,0});
+	// N1 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N1, {1,0,1});
+		//shared_ptr<TT<int, int>> test = forking(N1, {1,1});
+		//shared_ptr<TT<int, int>> test = forking(N1, {0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N1, {0,1,0});
+		//shared_ptr<TT<int, int>> test = forking(N1, {1});
+		//shared_ptr<TT<int, int>> test = forking(N1, {0});
+
+	//N2 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N2, {1,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N2, {1,0,1});
+		//shared_ptr<TT<int, int>> test = forking(N2, {1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N2, {0,1,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N2, {0,1,1,0});
+		//shared_ptr<TT<int, int>> test = forking(N2, {0,0,1,0,0});
+	// N2 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N2, {1,0,1});
+		//shared_ptr<TT<int, int>> test = forking(N2, {1,1});
+		//shared_ptr<TT<int, int>> test = forking(N2, {0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N2, {0,1,0});
+		//shared_ptr<TT<int, int>> test = forking(N2, {1});
+		//shared_ptr<TT<int, int>> test = forking(N2, {0});
+		
+	// N3 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N3, {0,0});
+		//shared_ptr<TT<int, int>> test = forking(N3, {0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N3, {0,0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N3, {0});
+		//shared_ptr<TT<int, int>> test = forking(N3, {0,0,0,0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N3, {});
+	// N3 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N3, {1,0});
+		//shared_ptr<TT<int, int>> test = forking(N3, {1,1});
+		//shared_ptr<TT<int, int>> test = forking(N3, {0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N3, {0,1,0});
+		//shared_ptr<TT<int, int>> test = forking(N3, {1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N3, {1});
+
+	// N4 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N4, {1,0,1,0});
+		//shared_ptr<TT<int, int>> test = forking(N4, {1,1,0});
+		//shared_ptr<TT<int, int>> test = forking(N4, {1,1,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N4, {0});
+		//shared_ptr<TT<int, int>> test = forking(N4, {0,0});
+		//shared_ptr<TT<int, int>> test = forking(N4, {1,0,0});
+	// N4 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N4, {1});
+		//shared_ptr<TT<int, int>> test = forking(N4, {1,1});
+		//shared_ptr<TT<int, int>> test = forking(N4, {1,0});
+		//shared_ptr<TT<int, int>> test = forking(N4, {1,0,1});
+		//shared_ptr<TT<int, int>> test = forking(N4, {1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N4, {0,1});
+	
+	// N13 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N13, {0,1});
+		//shared_ptr<TT<int, int>> test = forking(N13, {1});
+		//shared_ptr<TT<int, int>> test = forking(N13, {1,1});
+		//shared_ptr<TT<int, int>> test = forking(N13, {1,0});
+		
+	// N13 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N13, {0});
+		//shared_ptr<TT<int, int>> test = forking(N13, {0,0});
+		//shared_ptr<TT<int, int>> test = forking(N13, {1});
+		//shared_ptr<TT<int, int>> test = forking(N13, {1,0,1});
+		//shared_ptr<TT<int, int>> test = forking(N13, {1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N13, {0,1,1,1});
+
+	// N6 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N6, {1,1});
+		//shared_ptr<TT<int, int>> test = forking(N6, {0,0});
+		//shared_ptr<TT<int, int>> test = forking(N6, {0,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N6, {1,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N6, {0,1,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N6, {0,0,0});
+	// N6 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N6, {0});
+		//shared_ptr<TT<int, int>> test = forking(N6, {0,1});
+		//shared_ptr<TT<int, int>> test = forking(N6, {1});
+		//shared_ptr<TT<int, int>> test = forking(N6, {1,0});
+		//shared_ptr<TT<int, int>> test = forking(N6, {1,1,0});
+		//shared_ptr<TT<int, int>> test = forking(N6, {0,1,0,1});
+
+	// N7 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N7, {0,0});
+		//shared_ptr<TT<int, int>> test = forking(N7, {0,1});
+		//shared_ptr<TT<int, int>> test = forking(N7, {1,0});
+		//shared_ptr<TT<int, int>> test = forking(N7, {1,1});
+		// only accepts four strings 
+	// N7 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N7, {0});
+		//shared_ptr<TT<int, int>> test = forking(N7, {1});
+		//shared_ptr<TT<int, int>> test = forking(N7, {1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N7, {0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N7, {1,1,0});
+		//shared_ptr<TT<int, int>> test = forking(N7, {0,1,0,1});
+	
+	// N8 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N8, {0});
+		//shared_ptr<TT<int, int>> test = forking(N8, {1,1});
+		//shared_ptr<TT<int, int>> test = forking(N8, {0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N8, {1,1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N8, {0,0,0,0,0});
+		// //shared_ptr<TT<int, int>> test = forking(N8, {1,1,1,1,1,1});
+	// N8 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N8, {1});
+		//shared_ptr<TT<int, int>> test = forking(N8, {0,0});
+		//shared_ptr<TT<int, int>> test = forking(N8, {1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N8, {0,0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N8, {1,1,1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N8, {0,0,0,0,0,0});
+
+	// N9 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N9, {1,1});
+		//shared_ptr<TT<int, int>> test = forking(N9, {1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N9, {1,0,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N9, {1,0,1});
+		//shared_ptr<TT<int, int>> test = forking(N9, {1,0,1,0,1});
+		// //shared_ptr<TT<int, int>> test = forking(N9, {1,1,1,1,1});
+	// N9 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N9, {0});
+		//shared_ptr<TT<int, int>> test = forking(N9, {0,0});
+		//shared_ptr<TT<int, int>> test = forking(N9, {0,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N9, {0,0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N9, {0,1,1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N9, {0,0,0,0,0,0});
+
+	// N10 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N10, {});
+		//shared_ptr<TT<int, int>> test = forking(N10, {1});
+		//shared_ptr<TT<int, int>> test = forking(N10, {0});
+		//shared_ptr<TT<int, int>> test = forking(N10, {1,0});
+		//shared_ptr<TT<int, int>> test = forking(N10, {0,1});
+		// //shared_ptr<TT<int, int>> test = forking(N10, {1,0,1});
+	// N10 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N10, {1,1});
+		//shared_ptr<TT<int, int>> test = forking(N10, {0,0});
+		//shared_ptr<TT<int, int>> test = forking(N10, {0,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N10, {0,0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N10, {0,1,1,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N10, {0,0,0,0,0,0});
+
+	// N14 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N14, {1});
+		//shared_ptr<TT<int, int>> test = forking(N14, {1,0});
+		//shared_ptr<TT<int, int>> test = forking(N14, {1,1,0});
+		//shared_ptr<TT<int, int>> test = forking(N14, {1,1});
+		//shared_ptr<TT<int, int>> test = forking(N14, {1,1,1});
+		// //shared_ptr<TT<int, int>> test = forking(N14, {1,0,0});
+	// N114 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N14, {1,0,1});
+		//shared_ptr<TT<int, int>> test = forking(N14, {1});
+		//shared_ptr<TT<int, int>> test = forking(N14, {0});
+		//shared_ptr<TT<int, int>> test = forking(N14, {0,0,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N14, {1,1,0,1});
+		//shared_ptr<TT<int, int>> test = forking(N14, {0,0,0,0,0,0});
+
+	// N12 accepting string
+		//shared_ptr<TT<int, int>> test = forking(N12, {2});
+		//shared_ptr<TT<int, int>> test = forking(N12, {6});
+		//shared_ptr<TT<int, int>> test = forking(N12, {6,8});
+		//shared_ptr<TT<int, int>> test = forking(N12, {6,3});
+		//shared_ptr<TT<int, int>> test = forking(N12, {});
+		//shared_ptr<TT<int, int>> test = forking(N12, {2,2});
+	// N112 rejecting strings
+		//shared_ptr<TT<int, int>> test = forking(N12, {3,2});
+		//shared_ptr<TT<int, int>> test = forking(N12, {1});
+		//shared_ptr<TT<int, int>> test = forking(N12, {2,2,3});
+		//shared_ptr<TT<int, int>> test = forking(N12, {0});
+		//shared_ptr<TT<int, int>> test = forking(N12, {2,4,9});
+		//shared_ptr<TT<int, int>> test = forking(N12, {3,9,2});
+
 
 	return 0;
 }
@@ -3455,134 +3613,12 @@ shared_ptr <TT<State, C>> forking(NFA<State, C>* nfa, list<int> str ) {
 		nextTreeL = tt->push2(next);
 		tt->printTreeL();
 		cout << endl;
-		treeLoop2(nextTreeL, tempStr);
+		treeLoop(nextTreeL, tempStr);
 	}
 	return tt;
-}/*
-template<typename State, typename C>
-void help(list<shared_ptr <TT<State, C>>> lst, list<int> str) {
-	list<shared_ptr <TT<State, C>>> temp;
-	list<list<int>> nextList;
-	pair<list<int>, list<int>> nextPair;
-	for(auto c : str){
-		for (auto curTree : lst) {
-			if (!str.empty()) {
-				nextPair.first = curTree->d.first(curTree->branch, str.front());
-			}
-			nextPair.second = curTree->d.second(curTree->branch);
-
-			if ((!nextPair.second.empty()) && (nextPair.first.empty())) {
-				nextList.push_back(nextPair.second);
-				temp = curTree->push(nextList);
-				help(temp, str);
-			}
-			else if ((nextPair.second.empty()) && (nextPair.first.empty())) {
-				continue;
-			}
-			else if ((!nextPair.second.empty()) && (!nextPair.first.empty())) {
-				nextList.push_back(nextPair.first);
-				nextList.push_back(nextPair.second);
-				temp = curTree->push(nextList);
-				for (auto x : temp) {
-					for (auto j : temp) {
-						if (j->branch == x->branch) {
-							list<int> epsStr = str;
-							if (!str.empty()) {
-								str.pop_front();
-							}
-							list<shared_ptr <TT<State, C>>> temp1;
-							list<shared_ptr <TT<State, C>>> temp2;
-							temp1.push_back(x);
-							temp2.push_back(j);
-							nextList.push_back(nextPair.first);
-							nextList.push_back(nextPair.second);
-							temp = curTree->push(nextList);
-							help(temp1, epsStr);
-							help(temp2, str);
-						}
-					}
-				}
-
-			}
-			else {
-				if (!str.empty()) {
-					str.pop_front();
-						nextList.push_back(nextPair.first);
-					nextList.push_back(nextPair.second);
-					temp = curTree->push(nextList);
-					for (auto iterator : temp) {
-						cout << iterator->branch << " ";
-					}
-					cout << endl;
-					help(temp, str);
-				}
-			}
-
-		}
-
-	}
 }
 template<typename State, typename C>
-void printFullTree(list<shared_ptr <TT<State, C>>> lst) {
-	list<shared_ptr <TT<State, C>>> temp;
-	list<list<int>> nextList;
-	int lvl = 0;
-	string dash = " ";
-
-	for (auto i : lst) {
-		for (auto j : dash) {
-			cout << j;
-		}
-		dash.append("-----");
-		cout << "L" << lvl << i->branch << endl;
-		printFullTree(i->treeL);
-	}
-}*/
-template<typename State, typename C>
-list<shared_ptr <TT<State, C>>> treeLoop(list<shared_ptr <TT<State, C>>> tL, list<int> str) {
-	list<list<int>> next;
-	list<shared_ptr <TT<State, C>>> ret;
-	for (auto i : tL) {
-	
-		
-		i->curStr = str;
-		
-		next = {};
-		next.push_back(i->d.first(i->branch, i->curStr.front()));
-		next.push_back(i->d.second(i->branch));
-		if ((!next.front().empty()) && (!next.back().empty())) {
-			i->push(next);
-			for (auto j : i->treeL.front()) {
-				for (auto x: i->treeL.back()) {
-					if (j->branch == x->branch) {
-						x->curStr.pop_front();
-					}
-				}
-			}
-			ret.push_back(i);
-		}
-		else if ((!next.front().empty()) && (next.back().empty())) {
-			next.pop_back();
-			i->push(next);
-		
-			ret.push_back(i);
-		}
-		else if ((next.front().empty()) && (!next.back().empty())) {
-			next.pop_front();
-			i->push(next);
-			ret.push_back(i);
-		}
-		else {
-			i->push(next);
-			ret.push_back(i);
-		}
-		
-		cout << i->branch << endl;
-	}
-	return ret;
-}
-template<typename State, typename C>
-void treeLoop2(list<shared_ptr <TT<State, C>>> tL, list<int> str) {
+void treeLoop(list<shared_ptr <TT<State, C>>> tL, list<int> str) {
 	list<shared_ptr <TT<State, C>>> temp;
 	pair<list<int>, list<int>> next;
 	list<list<int>> dResults;
@@ -3601,7 +3637,7 @@ void treeLoop2(list<shared_ptr <TT<State, C>>> tL, list<int> str) {
 			next.second = dResults.back();
 			temp = {};
 			temp = i->push2(next);
-			treeLoop2(temp, str);
+			treeLoop(temp, str);
 		}
 		else {
 			dResults = {};
@@ -3612,7 +3648,7 @@ void treeLoop2(list<shared_ptr <TT<State, C>>> tL, list<int> str) {
 				next.second = dResults.front();
 				temp = {};
 				temp = i->push2(next);
-				treeLoop2(temp, str);
+				treeLoop(temp, str);
 			}
 			else {
 				continue;
