@@ -2972,7 +2972,7 @@ int main(void) {
 		Task 31 - For each example NFA, write a dozen tests of their behavior.
 	*/
 	// N1 accepting string
-		//shared_ptr<TT<int, int>> test = forking(N1, {1,0,1,1});
+		shared_ptr<TT<int, int>> test = forking(N1, {1,0,1,1});
 		//shared_ptr<TT<int, int>> test = forking(N1, {1,1,1});
 		//shared_ptr<TT<int, int>> test = forking(N1, {0,0,0,1,0,1});
 		//shared_ptr<TT<int, int>> test = forking(N1, {0,1,0,1,1,0});
@@ -2987,7 +2987,7 @@ int main(void) {
 		//shared_ptr<TT<int, int>> test = forking(N1, {0});
 
 	//N2 accepting string
-		shared_ptr<TT<int, int>> test = forking(N2, {1,0,0});
+		//shared_ptr<TT<int, int>> test = forking(N2, {1,0,0});
 		//shared_ptr<TT<int, int>> test = forking(N2, {1,0,1});
 		//shared_ptr<TT<int, int>> test = forking(N2, {1,1,1});
 		//shared_ptr<TT<int, int>> test = forking(N2, {0,1,0,0});
@@ -3477,7 +3477,7 @@ void testEquality(DFA<State1, C>* X, DFA<State2, C>* Y, bool answer, string name
 	}
 }
 /*
-	TASK #23 - Write a (trivial) function that converts DFAs into NFAs.
+	TASK #24 - Write a (trivial) function that converts DFAs into NFAs.
 */
 template<typename State, typename C>
 NFA<State, C>* DFAtoNFA(DFA<State, C>* dfa) {
@@ -3524,7 +3524,9 @@ list<Config<State>> createTrace(list<State> states, list<int> str) {
 	}
 	return lc;
 }
-
+/*
+	27 - Oracle
+*/
 template<typename State, typename C>
 bool oracle(NFA<State, C>* nfa, list<int> str, list<Config<State>> ts) {
 	State qi = nfa->q0;
