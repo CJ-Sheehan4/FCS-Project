@@ -2987,7 +2987,7 @@ int main(void) {
 		//shared_ptr<TT<int, int>> test = forking(N1, {0});
 
 	//N2 accepting string
-		//shared_ptr<TT<int, int>> test = forking(N2, {1,0,0});
+		shared_ptr<TT<int, int>> test = forking(N2, {1,0,0});
 		//shared_ptr<TT<int, int>> test = forking(N2, {1,0,1});
 		//shared_ptr<TT<int, int>> test = forking(N2, {1,1,1});
 		//shared_ptr<TT<int, int>> test = forking(N2, {0,1,0,0});
@@ -3601,9 +3601,12 @@ shared_ptr <TT<State, C>> forking(NFA<State, C>* nfa, list<int> str ) {
 	list<list<int>> dResults;
 	list<shared_ptr<TT<State, C>>> nextTreeL;
 	list<int> tempStr = tt->curStr;
-	tempStr.pop_front();
+	
 	cout << "Root: " << tt->branch;
+	cout << "-";
 	tt->printCurStr();
+	
+	tempStr.pop_front();
 	cout << endl;
 	if (!tt->curStr.empty()) {
 		dResults.push_back(tt->d.first(tt->branch, str.front()));
