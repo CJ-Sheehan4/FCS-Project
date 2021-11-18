@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <typeinfo>
 #include <memory>
+#include <variant>
 #include "DFA.h"
 #include "NFA.h"
 #include "TT.h"
@@ -74,6 +75,16 @@ template<typename State, typename C>
 bool oracle(NFA<State, C>* nfa, list<int> str, list<Config<State>> ts);
 template<typename State, typename C>
 void oracleLoop(NFA<State, C>* nfa, string name, list<list<int>> strs, list<list<Config<State>>> ts);
+template<typename State, typename C>
+shared_ptr <TT<State, C>> forking(NFA<State, C>* nfa, list<int> str);
+//template<typename State, typename C>
+//void help(list<shared_ptr <TT<State, C>>> lst, list<int> str);
+//template<typename State, typename C>
+//void printFullTree(list<shared_ptr <TT<State, C>>> lst);
+template<typename State, typename C>
+list<shared_ptr <TT<State, C>>> treeLoop(list<shared_ptr <TT<State, C>>> , list <int> str);
+template<typename State, typename C>
+void treeLoop2(list<shared_ptr <TT<State, C>>> tL, list<int> str);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -1850,7 +1861,7 @@ int main(void) {
 		}
 	}
 	// TT for NFA: N2 
-	// str: {}
+	// str: {00100}
 	shared_ptr<TT<int, int>> tt6RootN2 = make_shared<TT<int, int>>(N2->q0, N2->d1, N2->d2);
 	tt6RootN2->createTreeL(0);
 	//cout << "Root:" << tt6RootN2->branch << endl;
@@ -2918,7 +2929,7 @@ int main(void) {
 	// str: {empty}
 	shared_ptr<TT<int, int>> tt4RootN12 = make_shared<TT<int, int>>(N12->q0, N12->d1, N12->d2);
 	tt4RootN12->createTreeL({});
-	cout << "Root:" << tt4RootN12->branch << endl;
+	//cout << "Root:" << tt4RootN12->branch << endl;
 	//count = 0;
 	for (auto i1 : tt4RootN12->treeL) {
 		i1->createTreeL({});
@@ -2931,16 +2942,16 @@ int main(void) {
 	// str: {empty}
 	shared_ptr<TT<int, int>> tt5RootN12 = make_shared<TT<int, int>>(N12->q0, N12->d1, N12->d2);
 	tt5RootN12->createTreeL({});
-	cout << "Root:" << tt5RootN12->branch << endl;
+	//cout << "Root:" << tt5RootN12->branch << endl;
 	count = 0;
 	for (auto i1 : tt4RootN12->treeL) {
 		i1->createTreeL(6);
-		cout << "L1:" << i1->branch << endl;
+		//cout << "L1:" << i1->branch << endl;
 		for (auto i2 : i1->treeL) {
 			i2->createTreeL(3);
-			cout << "-----L2:" << i2->branch << endl;
+			//cout << "-----L2:" << i2->branch << endl;
 			for (auto i3 : i2->treeL) {
-				cout << "----------L3:" << i3->branch << endl;
+				//cout << "----------L3:" << i3->branch << endl;
 			}
 		}
 	}
@@ -2962,6 +2973,25 @@ int main(void) {
 			}
 		}
 	}
+	//list<shared_ptr <TT<int, int>>> ret = treeLoop(tt6RootN12->treeL, 6);
+	//for (auto i : ret) {
+	//	cout << i->branch;
+	//}
+	/*
+		testing Task 30
+	*//*
+	shared_ptr<TT<int, int>> test = make_shared<TT<int, int>>(N12->q0, N12->d1, N12->d2);
+	list<int> charList = { 3,2 };
+	list<shared_ptr <TT<int, int>>> root;
+	root.push_back(test);
+	//help(root, charList);
+	//printFullTree(root);
+*/
+	//list<int> testStr = { 0,0,0,0 };
+	//shared_ptr<TT<int, int>> test = forking(N3, testStr);
+	list<int> testStr2 = { 1,0,1,1 };
+	shared_ptr<TT<int, int>> test = forking(N1, testStr2);
+
 	return 0;
 }
 /*
@@ -3400,5 +3430,194 @@ void oracleLoop(NFA<State, C>* nfa, string name, list<list<int>> strs, list<list
 		}
 		strsIt++;
 		count++;
+	}
+}
+/*
+	TASK 30 - 	(Forking) Write a function that given an NFA and a string, returns a tree of all possible traces.
+*/
+
+template<typename State, typename C>
+shared_ptr <TT<State, C>> forking(NFA<State, C>* nfa, list<int> str ) {
+	shared_ptr<TT<State, C>> tt = make_shared<TT<State, C>>(nfa->q0, nfa->d1, nfa->d2, str);
+	pair<list<int>, list<int>> next;
+	list<list<int>> dResults;
+	list<shared_ptr<TT<State, C>>> nextTreeL;
+	list<int> tempStr = tt->curStr;
+	tempStr.pop_front();
+	cout << "Root: " << tt->branch;
+	tt->printCurStr();
+	cout << endl;
+	if (!tt->curStr.empty()) {
+		dResults.push_back(tt->d.first(tt->branch, str.front()));
+		dResults.push_back(tt->d.second(tt->branch));
+		next.first = dResults.front();
+		next.second = dResults.back();
+		nextTreeL = tt->push2(next);
+		tt->printTreeL();
+		cout << endl;
+		treeLoop2(nextTreeL, tempStr);
+	}
+	return tt;
+}/*
+template<typename State, typename C>
+void help(list<shared_ptr <TT<State, C>>> lst, list<int> str) {
+	list<shared_ptr <TT<State, C>>> temp;
+	list<list<int>> nextList;
+	pair<list<int>, list<int>> nextPair;
+	for(auto c : str){
+		for (auto curTree : lst) {
+			if (!str.empty()) {
+				nextPair.first = curTree->d.first(curTree->branch, str.front());
+			}
+			nextPair.second = curTree->d.second(curTree->branch);
+
+			if ((!nextPair.second.empty()) && (nextPair.first.empty())) {
+				nextList.push_back(nextPair.second);
+				temp = curTree->push(nextList);
+				help(temp, str);
+			}
+			else if ((nextPair.second.empty()) && (nextPair.first.empty())) {
+				continue;
+			}
+			else if ((!nextPair.second.empty()) && (!nextPair.first.empty())) {
+				nextList.push_back(nextPair.first);
+				nextList.push_back(nextPair.second);
+				temp = curTree->push(nextList);
+				for (auto x : temp) {
+					for (auto j : temp) {
+						if (j->branch == x->branch) {
+							list<int> epsStr = str;
+							if (!str.empty()) {
+								str.pop_front();
+							}
+							list<shared_ptr <TT<State, C>>> temp1;
+							list<shared_ptr <TT<State, C>>> temp2;
+							temp1.push_back(x);
+							temp2.push_back(j);
+							nextList.push_back(nextPair.first);
+							nextList.push_back(nextPair.second);
+							temp = curTree->push(nextList);
+							help(temp1, epsStr);
+							help(temp2, str);
+						}
+					}
+				}
+
+			}
+			else {
+				if (!str.empty()) {
+					str.pop_front();
+						nextList.push_back(nextPair.first);
+					nextList.push_back(nextPair.second);
+					temp = curTree->push(nextList);
+					for (auto iterator : temp) {
+						cout << iterator->branch << " ";
+					}
+					cout << endl;
+					help(temp, str);
+				}
+			}
+
+		}
+
+	}
+}
+template<typename State, typename C>
+void printFullTree(list<shared_ptr <TT<State, C>>> lst) {
+	list<shared_ptr <TT<State, C>>> temp;
+	list<list<int>> nextList;
+	int lvl = 0;
+	string dash = " ";
+
+	for (auto i : lst) {
+		for (auto j : dash) {
+			cout << j;
+		}
+		dash.append("-----");
+		cout << "L" << lvl << i->branch << endl;
+		printFullTree(i->treeL);
+	}
+}*/
+template<typename State, typename C>
+list<shared_ptr <TT<State, C>>> treeLoop(list<shared_ptr <TT<State, C>>> tL, list<int> str) {
+	list<list<int>> next;
+	list<shared_ptr <TT<State, C>>> ret;
+	for (auto i : tL) {
+	
+		
+		i->curStr = str;
+		
+		next = {};
+		next.push_back(i->d.first(i->branch, i->curStr.front()));
+		next.push_back(i->d.second(i->branch));
+		if ((!next.front().empty()) && (!next.back().empty())) {
+			i->push(next);
+			for (auto j : i->treeL.front()) {
+				for (auto x: i->treeL.back()) {
+					if (j->branch == x->branch) {
+						x->curStr.pop_front();
+					}
+				}
+			}
+			ret.push_back(i);
+		}
+		else if ((!next.front().empty()) && (next.back().empty())) {
+			next.pop_back();
+			i->push(next);
+		
+			ret.push_back(i);
+		}
+		else if ((next.front().empty()) && (!next.back().empty())) {
+			next.pop_front();
+			i->push(next);
+			ret.push_back(i);
+		}
+		else {
+			i->push(next);
+			ret.push_back(i);
+		}
+		
+		cout << i->branch << endl;
+	}
+	return ret;
+}
+template<typename State, typename C>
+void treeLoop2(list<shared_ptr <TT<State, C>>> tL, list<int> str) {
+	list<shared_ptr <TT<State, C>>> temp;
+	pair<list<int>, list<int>> next;
+	list<list<int>> dResults;
+	for (auto i : tL) {
+		cout << i->branch << "-";
+		i->printCurStr();
+		cout << endl;
+		if (!i->curStr.empty()) {
+			
+			dResults = {};
+			dResults.push_back(i->d.first(i->branch, i->curStr.front()));
+			dResults.push_back(i->d.second(i->branch));
+			next.first = {};
+			next.second = {};
+			next.first = dResults.front();
+			next.second = dResults.back();
+			temp = {};
+			temp = i->push2(next);
+			treeLoop2(temp, str);
+		}
+		else {
+			dResults = {};
+			dResults.push_back(i->d.second(i->branch));
+			if (!dResults.empty()) {
+				next.first = {};
+				next.second = {};
+				next.second = dResults.front();
+				temp = {};
+				temp = i->push2(next);
+				treeLoop2(temp, str);
+			}
+			else {
+				continue;
+			}
+			
+		}
 	}
 }
