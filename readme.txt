@@ -26,3 +26,7 @@ Task #31:
 starts at line 2971 - 3150
 by uncommenting a line you will see a tree that will resemble the ones I wrote by hand that I have included
 in the previous commit. 
+
+Task #32:
+I created a seperate file for the Config class opposed to having it defined at the top of main. I felt it was
+approriate to utilize this class to write the (Backtracking) algorithm/function. 

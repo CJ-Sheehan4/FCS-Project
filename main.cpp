@@ -11,25 +11,12 @@
 #include "DFA.h"
 #include "NFA.h"
 #include "TT.h"
+#include "Config.h"
 #include "DFA.cpp"
 #include "NFA.cpp"
 #include "TT.cpp"
 using namespace std;
 
-template<typename State>
-class Config {
-public:
-	Config() : curS(0), curStr({0}) {}
-	Config(State si, list<int> stri) : curS(si), curStr(stri) {}
-	void printStr(void) {
-		for (auto i : curStr) {
-			cout << i;
-		}
-	};
-	//public fields
-	State curS;
-	list<int> curStr;
-};
 // function declarations
 list<list<int>> getLayer(list<int> sigma, int N);
 list<int> lexi(list<int> sigma, int N);
@@ -79,6 +66,8 @@ template<typename State, typename C>
 shared_ptr <TT<State, C>> forking(NFA<State, C>* nfa, list<int> str);
 template<typename State, typename C>
 void treeLoop(list<shared_ptr <TT<State, C>>> tL, list<int> str);
+template<typename State, typename C>
+void testNFAAccepts(NFA<State, C>* nfa, list<int> str, bool strShouldAccept, string name);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -2972,7 +2961,7 @@ int main(void) {
 		Task 31 - For each example NFA, write a dozen tests of their behavior.
 	*/
 	// N1 accepting string
-		shared_ptr<TT<int, int>> test = forking(N1, {1,0,1,1});
+		//shared_ptr<TT<int, int>> test = forking(N1, {1,0,1,1});
 		//shared_ptr<TT<int, int>> test = forking(N1, {1,1,1});
 		//shared_ptr<TT<int, int>> test = forking(N1, {0,0,0,1,0,1});
 		//shared_ptr<TT<int, int>> test = forking(N1, {0,1,0,1,1,0});
@@ -3149,6 +3138,26 @@ int main(void) {
 		//shared_ptr<TT<int, int>> test = forking(N12, {2,4,9});
 		//shared_ptr<TT<int, int>> test = forking(N12, {3,9,2});
 
+	/*
+		testing task 32 accepts function
+	*/
+	testNFAAccepts(N1, { 1,0,1,1 }, true, "N1");
+	testNFAAccepts(N1, { 1,1,1 }, true,"N1");
+	testNFAAccepts(N1, { 0,0,0,1,0,1}, true, "N1");
+	testNFAAccepts(N1, { 0,1,0,1,1,0}, true, "N1");
+	testNFAAccepts(N1, { 1,0,1,0,1,0}, true, "N1");
+	testNFAAccepts(N1, { 1,1,0}, true, "N1");
+	testNFAAccepts(N1, { 1 }, false, "N1");
+
+	testNFAAccepts(N4, { 0 }, true, "N4");
+	testNFAAccepts(N4, { 0,0 }, true, "N4");
+	testNFAAccepts(N4, { 1,0,0 }, true, "N4");
+	testNFAAccepts(N4, { 1,0,1,0 }, true, "N4");
+	testNFAAccepts(N4, { 1,1,0 }, true, "N4");
+	testNFAAccepts(N4, { 0,1 }, false, "N4");
+	testNFAAccepts(N4, { 0,1,1 }, false, "N4");
+	testNFAAccepts(N4, { 1,1 }, false, "N4");
+	
 
 	return 0;
 }
@@ -3530,8 +3539,8 @@ list<Config<State>> createTrace(list<State> states, list<int> str) {
 template<typename State, typename C>
 bool oracle(NFA<State, C>* nfa, list<int> str, list<Config<State>> ts) {
 	State qi = nfa->q0;
-	list<State> possibleStates1;
-	list<State> possibleStates2;
+	list<State> possibleStates1; // for d1
+	list<State> possibleStates2; // for d2
 	list<int> nextStr = str;
 	// check that the first state and string passed to the function match with the first config in the list
 	if ((!(ts.front().curS == qi) || (!(ts.front().curStr == str)))) { 
@@ -3544,7 +3553,7 @@ bool oracle(NFA<State, C>* nfa, list<int> str, list<Config<State>> ts) {
 		ts.pop_front();
 	while (!ts.empty()) {
 		if (!str.empty()) {
-			possibleStates1 = nfa->d1(qi, str.front());
+			possibleStates1 = nfa->d1(qi, str.front());  
 		}
 		else {
 			possibleStates1 = {};
@@ -3659,6 +3668,19 @@ void treeLoop(list<shared_ptr <TT<State, C>>> tL, list<int> str) {
 				continue;
 			}
 			
+		}
+	}
+}
+template<typename State, typename C>
+void testNFAAccepts(NFA<State, C>* nfa, list<int> str, bool strShouldAccept, string name) {
+	if (strShouldAccept) {
+		if (!(nfa->accepts(str))) {
+			cout << "### " << name << " YOU FAIL : The string was rejected when it should have accepted ###" << endl;
+		}
+	}
+	else {
+		if (nfa->accepts(str)) {
+			cout << "### " << name << " YOU FAIL : The string accepted when it should have rejected ###" << endl;
 		}
 	}
 }
