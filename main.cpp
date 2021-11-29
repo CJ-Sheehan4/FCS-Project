@@ -68,6 +68,8 @@ template<typename State, typename C>
 void treeLoop(list<shared_ptr <TT<State, C>>> tL, list<int> str);
 template<typename State, typename C>
 void testNFAAccepts(NFA<State, C>* nfa, list<int> str, bool strShouldAccept, string name);
+template<typename State1, typename State2, typename C>
+NFA<pair<list<State1>, list<State2>>, C>* unionNFA(NFA<State1, C>* a, NFA<State2, C>* b);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -3158,6 +3160,16 @@ int main(void) {
 	testNFAAccepts(N4, { 0,1,1 }, false, "N4");
 	testNFAAccepts(N4, { 1,1 }, false, "N4");
 	
+	/*
+		Testing Union
+	*/
+	auto* N4_U_N6 = unionNFA(N4, N6);
+	// d1: pair<list<State1>, list<State2>> s, C c>;
+	// d1 -> list<pair<list<State1>, list<State2>>> ret;
+	pair<list<int>, list<int>> start = N4_U_N6->q0;
+	cout << start.first.front() << " " << start.second.front();
+	list<pair<list<int>, list<int>>> next = N4_U_N6->d1(start, 1);
+	//testNFAAccepts(N4_U_N6, { 1,1 }, true, "N4_U_N6");
 
 	return 0;
 }
@@ -3683,4 +3695,45 @@ void testNFAAccepts(NFA<State, C>* nfa, list<int> str, bool strShouldAccept, str
 			cout << "### " << name << " YOU FAIL : The string accepted when it should have rejected ###" << endl;
 		}
 	}
+}
+/*
+		
+TASk #33 - (Union) Write a function that takes two NFAs and returns a third NFA that 
+			accepts a string if either argument accepts it.
+*/
+template<typename State1, typename State2, typename C>
+NFA<pair<list<State1>, list<State2>>, C>* unionNFA(NFA<State1, C>* a, NFA<State2, C>* b) {
+	NFA<pair<list<State1>, list<State2>>, C>* nfa = new NFA<pair<list<State1>, list<State2>>, C>(
+		[=](pair<list<State1>, list<State2>> s) {
+			return true;
+		},
+		pair<list<State1>, list<State2>>({ a->q0 }, { b->q0 }),
+		[=](pair<list<State1>, list<State2>> s, C c) {
+			list<pair<list<State1>, list<State2>>> tempList;
+			pair<list<State1>, list<State2>> tempPair;
+			list<State1> aList;
+			list<State2> bList;
+			aList = a->d1(s.first.front(), c);
+			bList = b->d1(s.second.front(), c);
+			tempPair.first = aList;
+			tempPair.second = bList;
+			tempList.push_back(tempPair);
+			return tempList;
+;		},
+		[=](pair<list<State1>, list<State2>> s) {
+			list<pair<list<State1>, list<State2>>> tempList;
+			pair<list<State1>, list<State2>> tempPair;
+			list<State1> aList;
+			list<State2> bList;
+			aList = a->d2(s.first.front());
+			bList = b->d2(s.second.front());
+			tempPair.first = aList;
+			tempPair.second = bList;
+			tempList.push_back(tempPair);
+			return tempList;
+		},
+		[=](pair<list<State1>, list<State2>> s) {
+			return true;
+		});
+	return nfa;
 }
