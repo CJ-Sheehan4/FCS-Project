@@ -77,6 +77,8 @@ list<pair<int, State>> nfaH(list<State> l, int tag);
 template<typename State, typename C>
 void testNFA(NFA<State, C>* nfa, string name, bool noAccepts, bool allAccepts,
 	list<list<int>> strL);
+template<typename State, typename C>
+NFA<State, C>* star(NFA<State, C>* a);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -3281,6 +3283,15 @@ int main(void) {
 		{ {1}, {1,0}, {1,0,1,0,1}, {1,1,0,1,0}, {1,1,0,1,0}, {1,1,1},
 		{}, {0}, {0,0}, {0,0,0}, {0,0,0,0}, {0,0,0,1,0,1} }
 	);
+	/*
+		UNFINISHED TASK 37 - Write a dozen tests for your Kleene star function.
+	*/
+	auto* N7Star = star(N7);
+	testNFA(N7Star, "N7Star", false, false,
+		{ {}, {0,0}, {0,0,0,0}, {0,0,0,1,1,0,1,1}, {1,1,0,1,1,0,0,0}, {1,1,1,1},
+		{1,1,1}, {0}, {0,0,0}, {1,1,0}, {0,0,1,1,0}, {0,1,0,0,1} }
+	);
+
 	return 0;
 }
 /*
@@ -3919,4 +3930,38 @@ void testNFA(NFA<State, C> *nfa, string name, bool noAccepts, bool allAccepts,
 		}
 		count++;
 	}
+}
+/*
+	TASK #36 - (Kleene Star) Write a function that takes an NFA and returns a new NFA that 
+	accepts a string if it can be broken into N pieces, each accepted by the argument.
+*/
+template<typename State, typename C>
+NFA<State, C>* star(NFA<State, C>* a) {
+	NFA<State, C>* nfa = new NFA<State, C>(
+		[=](State s) {
+			return ((a->Q(s)) || (s == -1));
+		},
+		-1,
+		[=](State s, C c) {
+			if (s != -1)
+				return a->d1(s, c);
+			else
+				return list<State>{};
+		},
+		[=](State s) {
+			if (s != -1) {
+				if (a->F(s))
+					return list<State>{-1};
+				else
+					return a->d2(s);
+			}	
+			else if (s == -1) 
+				return list<State>{a->q0};
+			else
+				return list<State>{};
+		},
+		[=](State s) {
+			return s == -1;
+		});
+	return nfa;
 }
