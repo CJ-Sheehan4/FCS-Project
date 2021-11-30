@@ -22,7 +22,7 @@ template<typename State, typename C>
 bool NFA<State, C>::accepts(list<int> w) {
 	list<Config<State>> v;
 	list<Config<State>> p = { Config<State>(this->q0, w) };
-	list<int> tempStateList;
+	list<State> tempStateList;
 	
 	while (!p.empty()) {
 		Config<State> qi(p.front().curS, p.front().curStr);

@@ -70,6 +70,13 @@ template<typename State, typename C>
 void testNFAAccepts(NFA<State, C>* nfa, list<int> str, bool strShouldAccept, string name);
 template<typename State1, typename State2, typename C>
 NFA<pair<list<State1>, list<State2>>, C>* unionNFA(NFA<State1, C>* a, NFA<State2, C>* b);
+template<typename State, typename C>
+NFA<pair<int, State>, C>* concat(NFA<State, C>* a, NFA<State, C>* b);
+template<typename State>
+list<pair<int, State>> concatH(list<State> l, int tag);
+template<typename State, typename C>
+void testConcat(NFA<State, C>* nfa, string name, bool noAccepts, bool allAccepts,
+	list<list<int>> strL);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -3167,9 +3174,17 @@ int main(void) {
 	// d1: pair<list<State1>, list<State2>> s, C c>;
 	// d1 -> list<pair<list<State1>, list<State2>>> ret;
 	pair<list<int>, list<int>> start = N4_U_N6->q0;
-	cout << start.first.front() << " " << start.second.front();
+	//cout << start.first.front() << " " << start.second.front();
 	list<pair<list<int>, list<int>>> next = N4_U_N6->d1(start, 1);
 	//testNFAAccepts(N4_U_N6, { 1,1 }, true, "N4_U_N6");
+	/*
+		Testing concat
+	*/
+	auto* N4_concat_N6 = concat(N4, N6);
+	testConcat(N4_concat_N6, "N4_concat_N6", false, false,
+		{ {0,0,0}, {1,0,1,1}, {0,0}, {1,1}, {0,1,1}, {1,0,0,1,1},
+		{1}, {0}, {1,0}, {1,0,0,0,1}, {0,0,1}, {1,1,0} }
+		);
 
 	return 0;
 }
@@ -3736,4 +3751,81 @@ NFA<pair<list<State1>, list<State2>>, C>* unionNFA(NFA<State1, C>* a, NFA<State2
 			return true;
 		});
 	return nfa;
+}
+/*
+	TASK #34 - (Concatenation) Write a function that takes two NFAs and returns a third NFA that accepts 
+	a string if it can be broken into two pieces, one accepted by the first NFA and the other accepted by the second.
+*/
+template<typename State, typename C>
+NFA<pair<int, State>, C>* concat(NFA<State, C>* a, NFA<State, C>* b) {
+	NFA<pair<int, State>, C>* nfa = new NFA<pair<int, State>, C>(
+		[=](pair<int, State> s) {
+			return (((s.first == 0) && a->Q(s.second)) || ((s.first == 1) && b->Q(s.second)));
+		},
+		pair<int, State>(0, a->q0),
+		[=](pair<int, State> s, C c) {
+			if (s.first == 0) {
+				return concatH(a->d1(s.second, c), 0);
+			}
+			else if (s.first == 1) {
+				return concatH(b->d1(s.second, c), 1);
+			}
+			else
+				return list<pair<int, State>>{};
+		},
+		[=](pair<int, State> s) {
+			if (s.first == 0) {
+				list<pair<int, State>>temp = concatH(a->d2(s.second), 0);
+				if (a->F(s.second)) {
+					temp.push_back(pair<int, State>(1, b->q0));
+					return temp;
+				}
+				else 
+					return temp;
+			}
+			else if (s.first == 1) {
+				return concatH(b->d2(s.second), 1);
+			}
+			else
+				return list<pair<int, State>>{};
+		},
+		[=](pair<int, State> s) {
+			if (s.first == 1)
+				return b->F(s.second);
+			else
+				return false;
+		});
+	return nfa;
+}
+template<typename State>
+list<pair<int, State>> concatH(list<State> l, int tag) {
+	list<pair<int, State>> ret;
+	for (auto i : l) {
+		ret.push_back(pair<int, State>(tag, i));
+	}
+	return ret;
+}
+template<typename State, typename C>
+void testConcat(NFA<State, C> *nfa, string name, bool noAccepts, bool allAccepts,
+	list<list<int>> strL) {
+	int count = 0;
+	for (auto i : strL) {
+		if (!allAccepts) {
+			if (count > 5) {
+				if (nfa->accepts(i)) {
+					cout << "\t\t" << name << "### FAIL at index " << count << endl;
+				}
+			}
+		}
+		if (!noAccepts) {
+			if (count <= 5) {
+				if (!nfa->accepts(i)) {
+					cout << "\t\t" << name << "### FAIL at index " << count << endl;
+				}
+
+			}
+		}
+		count++;
+	}
+
 }
