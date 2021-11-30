@@ -3284,14 +3284,86 @@ int main(void) {
 		{}, {0}, {0,0}, {0,0,0}, {0,0,0,0}, {0,0,0,1,0,1} }
 	);
 	/*
-		UNFINISHED TASK 37 - Write a dozen tests for your Kleene star function.
+		TASK 37 - Write a dozen tests for your Kleene star function.
 	*/
+	auto* N1Star = star(N1);
+	testNFA(N1Star, "N1Star", false, false,
+		{ {}, {1,0,1,1}, {1,0,1,1,1,0,1,1}, {1,1,1,1,0,1,1}, {1,1,1,1,0,1,1,1,1,1}, {0,1,1,1,1,1},
+		{1,0}, {0}, {1}, {0,1}, {0,1,0}, {0,1,0,0} }
+	);
+	auto* N2Star = star(N2);
+	testNFA(N2Star, "N2Star", false, false,
+		{ {}, {1,0,0}, {1,0,0,1,0,1}, {1,1,1,1,0,1,1,0,0}, {1,1,1,1,0,0}, {1,0,0,1,0,0,1,0,0},
+		{1}, {0}, {1,1}, {1,0}, {0,1}, {1,0,0,1} }
+	);
+	// if L(N3) = all strings that are multiples of 2 or 3 under sigma = {0}, 
+	// then N3* should accept a str of { 0,0,0,0,0,0,0 } (7 zeros)
+	// because it accepts a string of {0,0,0,0} (4 zeros) and accepts a string of {0,0,0} (three zeros) 
+	auto* N3Star = star(N3);
+	testNFA(N3Star, "N3Star", false, false,
+		{ {0,0,0,0,0,0,0}, {}, {0,0,0,0,0,0,0,0,0,0,0 }, {0,0,0,0,0}, {0,0}, {0,0,0},
+		{0}}
+	);
+	auto* N4Star = star(N4);
+	testNFA(N4Star, "N4Star", false, false,
+		{ {}, {1,0,1,0}, {1,0,0,1,0,1,0}, {1,1,0,1,0,0}, {1,0,0,1,1,0,0,0}, {1,0,1,0,0,1,0,0,1,1,0},
+		{0,1}, {1,0,1,0,1}, {1,0,0,1}, {1,0,1,0,1}, {0,0,1}, {0,0,1,0} }
+	);
+	auto* N5Star = star(N5);
+	testNFA(N5Star, "N5Star", false, false,
+		{ {}, {1,1}, {1,1,0,1}, {0,1,1}, {1}, {0,1,0,1},
+		{0}, {0,0}, {1,0}, {1,0,0}, {1,1,0}, {1,1,0,1,0} }
+	);
+	auto* N6Star = star(N6);
+	testNFA(N6Star, "N6Star", false, false,
+		{ {}, {1,1}, {1,1,0,0}, {0,1,1,1,0,0}, {0,0,0,1,1,1,0,0}, {1,1,1,1,0,0,0,1,1},
+		{1,1,0}, {0,0,1,0}, {1,0,0,1}, {1,1,1,0}, {0,1,1,0}, {0,1,1,1,0} }
+	);
+	
 	auto* N7Star = star(N7);
 	testNFA(N7Star, "N7Star", false, false,
 		{ {}, {0,0}, {0,0,0,0}, {0,0,0,1,1,0,1,1}, {1,1,0,1,1,0,0,0}, {1,1,1,1},
 		{1,1,1}, {0}, {0,0,0}, {1,1,0}, {0,0,1,1,0}, {0,1,0,0,1} }
 	);
-
+	// L(N8*) = all strings that have an even number of ones and any number of zeros
+	auto* N8Star = star(N8);
+	testNFA(N8Star, "N8Star", false, false,
+		{ {}, {1,1}, {1,1,0}, {0,0,0,0,1,1}, {1,1,1,1,0}, {1,1,0,0,0},
+		{1,0,0}, {0,0,1}, {1,1,1,0}, {1,1,1,0,0}, {1,0}, {1,1,1} }
+	);
+	auto* N9Star = star(N9);
+	testNFA(N9Star, "N9Star", false, false,
+		{ {}, {1,1,1}, {1,0,1,1,0,1}, {1,1,1,1,0,1,1}, {1,1,1,1,1,1}, {1,0,1,1,1,1},
+		{1}, {0}, {1,0}, {0,1}, {1,0,0}, {1,0,1,0} }
+	);
+	// N10* accepts all strings under sigma = {0,1}
+	auto* N10Star = star(N10);
+	testNFA(N10Star, "N10Star", false, true,
+		{ {}, {1}, {1,0,0,1}, {0,1,1,0}, {1,0,1,1,0,0,1,0,0,0,1}, {0} }
+	);
+	auto* N11Star = star(N11);
+	testNFA(N11Star, "N11Star", false, false,
+		{ {}, {1,0,1}, {1,0,0,1}, {1,1,0,0,1,0,1}, {1,0,1,1,0,0,1,0,0,0,1}, {1,0,1,0,0}, 
+		{1}, {0}, {1,0}, {0,1}, {1,0,0}, {1,1,1,1,1,0} }
+	);
+	// L(N12*) = all strings that contain only char's of 2, 3, 4, 6, 8, and 9 
+	// under sigma = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	auto* N12Star = star(N12);
+	testNFA(N12Star, "N12Star", false, false,
+		{ {}, {2,3,4}, {4,4,3}, {8,9}, {8,9,8,9,2,3}, {2,3,2},
+		{0}, {1}, {3,4,5}, {7}, {1,2,3,4}, {2,3,9,7} }
+	);
+	auto* N13Star = star(N13);
+	testNFA(N13Star, "N13Star", false, false,
+		{ {}, {0,1}, {0,1,1}, {1,1,1,1,1,1}, {0,1,0,1,0,1}, {0,1,1,0,1},
+		{0,0}, {1,0}, {0,1,0}, {1,1,0}, {1,1,1,1,0}, {0,1,0,1,1,0} }
+	);
+	auto* N14Star = star(N14);
+	testNFA(N14Star, "N14Star", false, false,
+		{ {}, {1}, {1,0,1}, {1,1,0}, {1,0,1,1}, {1,1,1,1,0,1},
+		{0}, {0,1}, {0,1,1}, {0,0}, {0,0,0}, {0,0,0,1,0} }
+	);
+	
 	return 0;
 }
 /*
@@ -3950,8 +4022,11 @@ NFA<State, C>* star(NFA<State, C>* a) {
 		},
 		[=](State s) {
 			if (s != -1) {
-				if (a->F(s))
-					return list<State>{-1};
+				if (a->F(s)) {
+					list<State> temp = a->d2(s);
+					temp.push_back(-1);
+					return temp;
+				}
 				else
 					return a->d2(s);
 			}	
