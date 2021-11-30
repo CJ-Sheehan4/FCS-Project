@@ -68,14 +68,14 @@ template<typename State, typename C>
 void treeLoop(list<shared_ptr <TT<State, C>>> tL, list<int> str);
 template<typename State, typename C>
 void testNFAAccepts(NFA<State, C>* nfa, list<int> str, bool strShouldAccept, string name);
-template<typename State1, typename State2, typename C>
-NFA<pair<list<State1>, list<State2>>, C>* unionNFA(NFA<State1, C>* a, NFA<State2, C>* b);
+template<typename State, typename C>
+NFA<pair<int, State>, C>* unionNFA(NFA<State, C>* a, NFA<State, C>* b);
 template<typename State, typename C>
 NFA<pair<int, State>, C>* concat(NFA<State, C>* a, NFA<State, C>* b);
 template<typename State>
-list<pair<int, State>> concatH(list<State> l, int tag);
+list<pair<int, State>> nfaH(list<State> l, int tag);
 template<typename State, typename C>
-void testConcat(NFA<State, C>* nfa, string name, bool noAccepts, bool allAccepts,
+void testNFA(NFA<State, C>* nfa, string name, bool noAccepts, bool allAccepts,
 	list<list<int>> strL);
 
 int main(void) {
@@ -3171,35 +3171,55 @@ int main(void) {
 		Testing Union
 	*/
 	auto* N4_U_N6 = unionNFA(N4, N6);
-
+	list<pair<int,int>> N4_U_N6_Q = { pair<int,int>(-1,-1), pair<int,int>(0, 0), pair<int,int>(0, 1), pair<int,int>(0, 2),
+	pair<int,int>(1, 0), pair<int,int>(1, 1), pair<int,int>(1, 2), pair<int,int>(1, 3), pair<int,int>(1, 4), 
+	pair<int,int>(1, 5), pair<int,int>(1, 6) };
+	for (auto i : N4_U_N6_Q) {
+		if (!N4_U_N6->Q(i)) {
+			cout << "FAIL Q" << endl;
+		}
+	}
+	list<pair<int, int>> N4_U_N6_F = { pair<int,int>(0, 0), pair<int,int>(1, 3), pair<int,int>(1, 6) };
+	for (auto i : N4_U_N6_F) {
+		if (!N4_U_N6->F(i)) {
+			cout << "FAIL Q" << endl;
+		}
+	}
+	if (N4_U_N6->q0 != pair<int, int>(-1,-1)) {
+		cout << "FAIL q0" << endl;
+	}
+	testNFA(N4_U_N6, "N4_U_N6", false, false,
+		{ {0}, {0,0}, {1,1}, {1,1,0}, {1,0,0,0}, {1,0,0,1,1},	//tests that should accept
+		{1}, {1,1,0,1}, {1,0}, {1,0,0,0,1}, {0,0,1}, {0,1} }	// tests that should reject
+	);
 	/*
 		TASK #35 - Testing concat
 	*/
 	// N4 accepts: epsilon, {0}, {1010}, {100}; doesnt accept: {1}, {11}, {10110}
 	// L(N6) = strings of a finite length that end in either '11' or '00'
 	auto* N4_concat_N6 = concat(N4, N6);
-	testConcat(N4_concat_N6, "N4_concat_N6", false, false,
+	testNFA(N4_concat_N6, "N4_concat_N6", false, false,
 		{ {0,0,0}, {1,0,1,1}, {0,0}, {1,1}, {0,1,1}, {1,0,0,1,1},
 		{1}, {0}, {1,0}, {1,0,0,0,1}, {0,0,1}, {1,1,0} }
 		);
 	// N1 accepts {1,1}, {1,0,1}, {0,1,1}
 	// L(N3) = strings that are multiples of 2 or 3
 	auto* N1_concat_N3 = concat(N1, N3);
-	testConcat(N1_concat_N3, "N1_concat_N3", false, false,
+	testNFA(N1_concat_N3, "N1_concat_N3", false, false,
 		{ {1,1}, {1,1,0,0}, {1,1,0,0,0}, {1,0,1,0,0,0}, {1,0,1}, {1,0,1,0,0,0,0,0,0},
 		{}, {0}, {1,0}, {1,0,0,0,1}, {1,0,0}, {0,0,0} }
 	);
 	// L(N2) = strings over {0,1} with a 1 third from the end
 	// N13 only accepts {1} and {0,1}
 	auto* N2_concat_N13 = concat(N2, N13);
-	testConcat(N2_concat_N13, "N2_concat_N13", false, false,
+	testNFA(N2_concat_N13, "N2_concat_N13", false, false,
 		{ {1,1,1,1}, {1,1,1,0,1}, {1,0,1,1,1,1,1}, {1,0,0,1}, {1,0,0,0,1}, {1,1,1,1,1,1,1},
 		{}, {0}, {1}, {1,1,1}, {1,0,0}, {0,0,0} }
 	);
 	// L(N7) = only the strings {00},{01},{10},{11}
 	// L(N8) = all strings that if they are even, will be all 1's, and if they are odd, they are all 0's
 	auto* N7_concat_N8 = concat(N7, N8);
-	testConcat(N7_concat_N8, "N7_concat_N8", false, false,
+	testNFA(N7_concat_N8, "N7_concat_N8", false, false,
 		{ {0,0,0}, {1,1,1,1}, {0,0,1,1}, {1,1,0}, {0,1,1,1}, {1,0,0,0,0},
 		{}, {0}, {1}, {1,1,1}, {1,0,0,0}, {0,0,1} }
 	);
@@ -3207,42 +3227,42 @@ int main(void) {
 	// L(N9) = all strings that start and end with the char 1, with any 
 	// amount of char's in between.
 	auto* N8_concat_N9 = concat(N8, N9);
-	testConcat(N8_concat_N9, "N8_concat_N9", false, false,
+	testNFA(N8_concat_N9, "N8_concat_N9", false, false,
 		{ {1,0,1}, {1,1,1,0,1}, {0,0,0,1,1,0,1,1}, {0,1,1,1}, {0,0,0,1,0,1}, {1,1,1},
 		{}, {0}, {1}, {1,1,0}, {1,0,0,0}, {0,0,1} }
 	);	
 	// L(N10) = any string that alternates between 1 and 0, starting with either 1 or 0.
 	// N14 accepts {1}, {1,0}, {1,1}, {1,1,0}
 	auto* N10_concat_N14 = concat(N10, N14);
-	testConcat(N10_concat_N14, "N10_concat_N14", false, false,
+	testNFA(N10_concat_N14, "N10_concat_N14", false, false,
 		{ {1}, {1,0}, {1,0,1,0,1}, {1,0,1,1,1}, {0,1,0,1,1,0}, {1,1,1},
 		{}, {0}, {0,0}, {0,0,0}, {0,0,0,0}, {0,0,0,1,0,1}}
 	);
 	// N4 accepts: epsilon, {0}, {1010}, {100}; doesnt accept: {1}, {11}, {10110}
 	// L(N6) = strings of a finite length that end in either '11' or '00'
 	auto* N6_concat_N4 = concat(N6, N4);
-	testConcat(N6_concat_N4, "N6_concat_N4", false, false,
+	testNFA(N6_concat_N4, "N6_concat_N4", false, false,
 		{ {0,0,0}, {1,0,1,1}, {0,0}, {1,1}, {0,1,1}, {1,0,0,1,1},
 		{1}, {0}, {1,0}, {1,0,0,0,1}, {0,0,1}, {} }
 	);
 	// N1 accepts {1,1}, {1,0,1}, {0,1,1}
 	// L(N3) = strings that are multiples of 2 or 3
 	auto* N3_concat_N1 = concat(N3, N1);
-	testConcat(N3_concat_N1, "N3_concat_N1", false, false,
+	testNFA(N3_concat_N1, "N3_concat_N1", false, false,
 		{ {1,1}, {1,1,0,0}, {1,1,0,0,0}, {1,0,1,0,0,0}, {1,0,1}, {1,0,1,0,0,0,0,0,0},
 		{}, {0}, {1,0}, {1,0,0,0,1}, {1,0,0}, {0,0,0} }
 	);
 	// L(N2) = strings over {0,1} with a 1 third from the end
 	// N13 only accepts {1} and {0,1}
 	auto* N13_concat_N2 = concat(N13, N2);
-	testConcat(N13_concat_N2, "N13_concat_N2", false, false,
+	testNFA(N13_concat_N2, "N13_concat_N2", false, false,
 		{ {1,1,1,1}, {1,1,1,0,1}, {1,0,1,1,1,1,1}, {1,1,0,1}, {1,0,1,0,1}, {1,1,1,1,1,1,1},
 		{}, {0}, {1}, {1,1,1}, {1,0,0}, {0,0,0} }
 	);
 	// L(N7) = only the strings {00},{01},{10},{11}
 	// L(N8) = all strings that if they are even, will be all 1's, and if they are odd, they are all 0's
 	auto* N8_concat_N7 = concat(N8, N7);
-	testConcat(N8_concat_N7, "N8_concat_N7", false, false,
+	testNFA(N8_concat_N7, "N8_concat_N7", false, false,
 		{ {0,0,0}, {1,1,1,1}, {1,1,0,0}, {0,1,1}, {0,0,0,0,1}, {0,0,0,1,1},
 		{}, {0}, {1}, {1,1,1}, {1,0,0,0}, {0,0,0,1} }
 	);
@@ -3250,14 +3270,14 @@ int main(void) {
 	// L(N9) = all strings that start and end with the char 1, with any 
 	// amount of char's in between.
 	auto* N9_concat_N8 = concat(N9, N8);
-	testConcat(N9_concat_N8, "N9_concat_N8", false, false,
+	testNFA(N9_concat_N8, "N9_concat_N8", false, false,
 		{ {1,0,1}, {1,1,1,0,1}, {1,0,1,1,1}, {1,0,1,0}, {1,1,1,0,0,0}, {1,1,1},
 		{}, {0}, {1}, {0,1,0}, {1,0,0,0}, {0,0,1} }
 	);
 	// L(N10) = any string that alternates between 1 and 0, starting with either 1 or 0.
 	// N14 accepts {1}, {1,0}, {1,1}, {1,1,0}
 	auto* N14_concat_N10 = concat(N14, N10);
-	testConcat(N14_concat_N10, "N14_concat_N10", false, false,
+	testNFA(N14_concat_N10, "N14_concat_N10", false, false,
 		{ {1}, {1,0}, {1,0,1,0,1}, {1,1,0,1,0}, {1,1,0,1,0}, {1,1,1},
 		{}, {0}, {0,0}, {0,0,0}, {0,0,0,0}, {0,0,0,1,0,1} }
 	);
@@ -3791,39 +3811,38 @@ void testNFAAccepts(NFA<State, C>* nfa, list<int> str, bool strShouldAccept, str
 TASk #33 - (Union) Write a function that takes two NFAs and returns a third NFA that 
 			accepts a string if either argument accepts it.
 */
-template<typename State1, typename State2, typename C>
-NFA<pair<list<State1>, list<State2>>, C>* unionNFA(NFA<State1, C>* a, NFA<State2, C>* b) {
-	NFA<pair<list<State1>, list<State2>>, C>* nfa = new NFA<pair<list<State1>, list<State2>>, C>(
-		[=](pair<list<State1>, list<State2>> s) {
-			return true;
+template<typename State, typename C>
+NFA<pair<int, State>, C>* unionNFA(NFA<State, C>* a, NFA<State, C>* b) {
+	NFA<pair<int, State>, C>* nfa = new NFA<pair<int, State>, C>(
+		[=](pair<int, State> s) {
+			return (((s.first == 0) && a->Q(s.second)) || ((s.first == 1) && b->Q(s.second)) || (s.first == -1 && s.second == -1));
 		},
-		pair<list<State1>, list<State2>>({ a->q0 }, { b->q0 }),
-		[=](pair<list<State1>, list<State2>> s, C c) {
-			list<pair<list<State1>, list<State2>>> tempList;
-			pair<list<State1>, list<State2>> tempPair;
-			list<State1> aList;
-			list<State2> bList;
-			aList = a->d1(s.first.front(), c);
-			bList = b->d1(s.second.front(), c);
-			tempPair.first = aList;
-			tempPair.second = bList;
-			tempList.push_back(tempPair);
-			return tempList;
-;		},
-		[=](pair<list<State1>, list<State2>> s) {
-			list<pair<list<State1>, list<State2>>> tempList;
-			pair<list<State1>, list<State2>> tempPair;
-			list<State1> aList;
-			list<State2> bList;
-			aList = a->d2(s.first.front());
-			bList = b->d2(s.second.front());
-			tempPair.first = aList;
-			tempPair.second = bList;
-			tempList.push_back(tempPair);
-			return tempList;
+		pair<int, State>(-1, -1),
+		[=](pair<int, State> s, C c) {
+			if (s.first == 0) {
+				return nfaH(a->d1(s.second, c), 0);
+			}
+			else if (s.first == 1) {
+				return nfaH(b->d1(s.second, c), 1);
+			}
+			else
+				return list<pair<int, State>>{};
 		},
-		[=](pair<list<State1>, list<State2>> s) {
-			return true;
+		[=](pair<int, State> s) {
+			if (s.first == -1 && s.second == -1) {
+				return list<pair<int, State>>{pair<int, State>(0,a->q0), pair<int, State>(1,b->q0)};
+			}
+			else if (s.first == 0) {
+				return nfaH(a->d2(s.second), 0);
+			}
+			else if (s.first == 1) {
+				return nfaH(b->d2(s.second), 1);
+			}
+			else
+				return list<pair<int, State>>{};
+		},
+		[=](pair<int, State> s) {
+			return ((s.first == 0) && (a->F(s.second))) || ((s.first == 1) && (b->F(s.second)));
 		});
 	return nfa;
 }
@@ -3840,17 +3859,17 @@ NFA<pair<int, State>, C>* concat(NFA<State, C>* a, NFA<State, C>* b) {
 		pair<int, State>(0, a->q0),
 		[=](pair<int, State> s, C c) {
 			if (s.first == 0) {
-				return concatH(a->d1(s.second, c), 0);
+				return nfaH(a->d1(s.second, c), 0);
 			}
 			else if (s.first == 1) {
-				return concatH(b->d1(s.second, c), 1);
+				return nfaH(b->d1(s.second, c), 1);
 			}
 			else
 				return list<pair<int, State>>{};
 		},
 		[=](pair<int, State> s) {
 			if (s.first == 0) {
-				list<pair<int, State>>temp = concatH(a->d2(s.second), 0);
+				list<pair<int, State>>temp = nfaH(a->d2(s.second), 0);
 				if (a->F(s.second)) {
 					temp.push_back(pair<int, State>(1, b->q0));
 					return temp;
@@ -3859,21 +3878,19 @@ NFA<pair<int, State>, C>* concat(NFA<State, C>* a, NFA<State, C>* b) {
 					return temp;
 			}
 			else if (s.first == 1) {
-				return concatH(b->d2(s.second), 1);
+				return nfaH(b->d2(s.second), 1);
 			}
 			else
 				return list<pair<int, State>>{};
 		},
 		[=](pair<int, State> s) {
-			if (s.first == 1)
-				return b->F(s.second);
-			else
-				return false;
+			return ((s.first == 1) && (b->F(s.second)));
+
 		});
 	return nfa;
 }
 template<typename State>
-list<pair<int, State>> concatH(list<State> l, int tag) {
+list<pair<int, State>> nfaH(list<State> l, int tag) {
 	list<pair<int, State>> ret;
 	for (auto i : l) {
 		ret.push_back(pair<int, State>(tag, i));
@@ -3881,7 +3898,7 @@ list<pair<int, State>> concatH(list<State> l, int tag) {
 	return ret;
 }
 template<typename State, typename C>
-void testConcat(NFA<State, C> *nfa, string name, bool noAccepts, bool allAccepts,
+void testNFA(NFA<State, C> *nfa, string name, bool noAccepts, bool allAccepts,
 	list<list<int>> strL) {
 	int count = 0;
 	for (auto i : strL) {
@@ -3902,5 +3919,4 @@ void testConcat(NFA<State, C> *nfa, string name, bool noAccepts, bool allAccepts
 		}
 		count++;
 	}
-
 }
