@@ -30,7 +30,8 @@ list<Config<State>> trace(DFA<State, C>* dfa, list<int> str);
 template<typename State>
 void printConfigList(list<Config<State>>& TL);
 void printConfigList_pair(list<Config<pair<int, int>>>& TL);
-void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, bool allAccepts, 
+template<typename State, typename C>
+void testDFA(DFA<State, C>* dfa, string DFAName, bool noAccepts, bool allAccepts,
 	list<list<int>> accepts, list<list<int>> nAccepts);
 template<typename State, typename C>
 pair<bool, list<int>> wouldBeAccept(DFA<State, C>* dfa, list<int> sigma);
@@ -79,6 +80,10 @@ void testNFA(NFA<State, C>* nfa, string name, bool noAccepts, bool allAccepts,
 	list<list<int>> strL);
 template<typename State, typename C>
 NFA<State, C>* star(NFA<State, C>* a);
+template<typename State, typename C>
+DFA<list<State>, C>* NFAtoDFA(NFA<State, C>* nfa);
+template<typename State, typename C>
+list<State> E(list<State> x, NFA<State, C>* nfa);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -3363,7 +3368,57 @@ int main(void) {
 		{ {}, {1}, {1,0,1}, {1,1,0}, {1,0,1,1}, {1,1,1,1,0,1},
 		{0}, {0,1}, {0,1,1}, {0,0}, {0,0,0}, {0,0,0,1,0} }
 	);
-	
+	/*
+		Testing NFAtoDFA
+	*/
+	// NFA named N4 converted to a DFA named N4DFA
+	auto*N4DFA = NFAtoDFA(N4);
+	// testing N4DFA->Q
+	list<list<int>> N4DFA_states = { 
+		{0,2},{1},{1,2},{0,1,2},{2,1},{}, 
+		{0,2,5}, {3}, {1,0,0}, {0,1,2,3},{0,2,0} };
+	int count12 = 0;
+	for (auto i : N4DFA_states) {
+		if (count12 < 6) {
+			if (!N4DFA->Q(i)) {
+				cout << "FAIL accepts NFA->Q at " << count12 << endl;
+			}
+		}
+		if(count12 >=6 ){
+			if (N4DFA->Q(i)) {
+				cout << "FAIL reject NFA->Q at " << count12 << endl;
+			}
+		}
+		count12++;
+	}
+	// testing N4DFA->q0
+	if (N4DFA->q0 != list<int>{0, 2}) {
+		cout << "FAIL q0" << endl;
+	}
+	// testing N4DFA->d
+	// this should accept and reject all the same strings as N4
+	testDFA(N4DFA, "N4DFA", false, false,
+		{ {1,0,1,0},{0},{},{1,0,0},{1,1,0},{0,0} },
+		{ {1,1}, {1,0,1}, {1,1,1}, {0,1}, {0,1,0}, {0,1,0,1,1} });
+	// testing N4DFA->F
+	list<list<int>> N4DFA_Fstates = {
+	{0,2},{0,2,1},{1,2,0}, {2,0},{1,0,2}, {2,1,0},
+	{}, {2}, {1,0,0}, {0,1,2,3},{1} };
+	int count13 = 0;
+	for (auto i : N4DFA_Fstates) {
+		if (count13 < 6) {
+			if (!N4DFA->F(i)) {
+				cout << "FAIL accepts NFA->F at " << count13 << endl;
+			}
+		}
+		if (count13 >= 6) {
+			if (N4DFA->F(i)) {
+				cout << "FAIL reject NFA->F at " << count13 << endl;
+			}
+		}
+		count13++;
+	}
+
 	return 0;
 }
 /*
@@ -3518,7 +3573,8 @@ void printConfigList_pair(list<Config<pair<int, int>>>& TL) {
 		cout << ' ';
 	}
 }
-void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, bool allAccepts,
+template<typename State, typename C>
+void testDFA(DFA<State, C>* dfa, string DFAName, bool noAccepts, bool allAccepts,
 	list<list<int>> accepts, list<list<int>> nAccepts) {
 	int count = 0;
 	//nested for-loops for all the strings it should accept
@@ -3539,13 +3595,6 @@ void testDFA(DFA<int, int>* dfa, string DFAName, bool noAccepts, bool allAccepts
 			count++;
 		}
 	}
-	list<list<int>>::iterator t = accepts.begin();
-	list <Config<int>> traceList = trace(dfa, *t);
-	cout << DFAName <<":" << endl;
-	printConfigList(traceList);
-	cout << endl;
-
-	
 }
 // Task #12
 template<typename State, typename C>
@@ -4039,4 +4088,92 @@ NFA<State, C>* star(NFA<State, C>* a) {
 			return s == -1;
 		});
 	return nfa;
+}
+/*
+	TASK #38 - Write a function which converts an NFA into a DFA that accepts the same language.
+*/
+template<typename State, typename C>
+DFA<list<State>, C> * NFAtoDFA(NFA<State, C> *nfa) {
+	DFA<list<State>, C>* dfa = new DFA<list<State>, C>(
+		[nfa](list<State> s) {
+			if (s == list<State>{}) {
+				return true;
+			}
+			list<int> v;
+			for (auto i : s) {
+				auto found = find(v.begin(), v.end(), i);
+				if (found != v.end()) {
+					return false;
+				}
+				if (!nfa->Q(i)) {
+					return false;
+				}
+				else
+					v.push_back(i);
+			}
+			return true;
+		},
+		E(list<State>{nfa->q0}, nfa),
+		[nfa](list<State> s, C c) { 
+			list<State> ret;
+			list<State> u;
+			if (s == list<State> {}) {
+				return list<State> {};
+			}
+			for (auto i : s) {
+				ret = nfa->d1(i,c);
+				for (auto j : ret) {
+					u.push_back(j);
+				}
+			}
+			if (E(u, nfa) == list<State>{}) {
+				return list<State> {};
+			}
+			else {
+				return E(u, nfa);
+			}
+		},
+		[nfa](list<State> s) {
+			list<State> v;
+			for (auto i : s) {
+				auto found = find(v.begin(), v.end(), i);
+				if (found != v.end() || s.empty()) {
+					return false;
+				}
+				else {
+					v.push_back(i);
+				}
+			}
+			for (auto i : s) {
+				if (!nfa->Q(i)) {
+					return false;
+				}
+			}
+			for (auto i : s) {
+				if (nfa->F(i)) {
+					return true;
+				}
+			}
+			return false; }
+		);
+	return dfa;
+}
+template<typename State, typename C>
+list<State> E(list<State> x, NFA<State, C>* nfa) {
+	bool changed = true;
+	while (changed) {
+		changed = false;
+		for (auto i : x) {
+			list<State> states = nfa->d2(i);
+			for (auto j : states) {
+				auto found = find(x.begin(), x.end(), j);
+				if (found == x.end()) {
+					changed = true;
+					x.push_back(j);
+					E(x,nfa);
+				}
+			}
+		}
+	}
+	return x;
 }
