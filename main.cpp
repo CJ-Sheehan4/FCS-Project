@@ -84,6 +84,8 @@ template<typename State, typename C>
 DFA<list<State>, C>* NFAtoDFA(NFA<State, C>* nfa);
 template<typename State, typename C>
 list<State> E(list<State> x, NFA<State, C>* nfa);
+template<typename State, typename C>
+void testQ_q0_F(DFA<State, C>* dfa, list<list<int>>Q, list<int>q0, list<list<int>>F);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -1584,6 +1586,33 @@ int main(void) {
 		},
 			[](int s) {return s == 2; }
 		);
+	// N15 is the NFA example from lecture pg.7-6
+	NFA<int, int>* N15 = new NFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 1)
+				return list<int>{3};
+			else if (s == 1 && c == 0)
+				return list<int>{2};
+			else if (s == 2 && c == 0)
+				return list<int>{1};
+			else if (s == 2 && c == 1)
+				return list<int>{4};
+			else
+				return list<int>{};
+		},
+		[](int s) {
+			if (s == 0)
+				return list<int>{1};
+			else if (s == 3)
+				return list<int>{2};
+			else
+				return list<int>{};
+		},
+			[](int s) {return s == 4; }
+		);
+
 	/*
 		TASK 29 - For each example NFA, write a half-dozen trace trees of their behavior.
 	*/
@@ -3369,55 +3398,79 @@ int main(void) {
 		{0}, {0,1}, {0,1,1}, {0,0}, {0,0,0}, {0,0,0,1,0} }
 	);
 	/*
-		Testing NFAtoDFA
+		TASK #39 - Ensure that all of your NFA tests return the correct results 
+		when converted to DFAs and run through the DFA accept function.
 	*/
-	// NFA named N4 converted to a DFA named N4DFA
-	auto*N4DFA = NFAtoDFA(N4);
-	// testing N4DFA->Q
-	list<list<int>> N4DFA_states = { 
-		{0,2},{1},{1,2},{0,1,2},{2,1},{}, 
-		{0,2,5}, {3}, {1,0,0}, {0,1,2,3},{0,2,0} };
-	int count12 = 0;
-	for (auto i : N4DFA_states) {
-		if (count12 < 6) {
-			if (!N4DFA->Q(i)) {
-				cout << "FAIL accepts NFA->Q at " << count12 << endl;
-			}
-		}
-		if(count12 >=6 ){
-			if (N4DFA->Q(i)) {
-				cout << "FAIL reject NFA->Q at " << count12 << endl;
-			}
-		}
-		count12++;
-	}
-	// testing N4DFA->q0
-	if (N4DFA->q0 != list<int>{0, 2}) {
-		cout << "FAIL q0" << endl;
-	}
-	// testing N4DFA->d
-	// this should accept and reject all the same strings as N4
-	testDFA(N4DFA, "N4DFA", false, false,
+	auto* N1d = NFAtoDFA(N1);
+	testDFA(N1d, "N1d", false, false,
+		{ {1,0,1,1},{1,1,1},{0,1,0,1,1,0},{0,0,0,1,0,1},{1,0,1,0,1,0},{1,1} },
+		{ {1}, {}, {1,0}, {0,1}, {0,1,0}, {0,0,0,1} });
+	testQ_q0_F(N1d,
+		{ {0},{0,1,2},{0,1,3,2},{0,2},{0,2,3},{0,1,3} },
+		{ 0 },
+		{ {0,1,2,3}, {0,1,3}, {0,2,3}, {0,3} });
+	
+	auto* N2d = NFAtoDFA(N2);
+	testDFA(N2d, "N2d", false, false,
+		{ {1,0,0},{1,0,1},{1,1,1},{0,0,0,0,1,0,0},{0,1,0,0},{0,1,1,0} },
+		{ {}, {1,1}, {1,0}, {0,1}, {0,0,0}, {0,0,0,1} });
+	auto* N3d = NFAtoDFA(N3);
+	testDFA(N3d, "N3d", false, false,
+		{ {0,0},{0,0,0},{0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0} },
+		{ {0}, {0,0,0,0,0}, {0,0,0,0,0,0,0}});
+	auto*N4d = NFAtoDFA(N4);
+	testQ_q0_F(N4d,
+		{ {0,2},{1},{1,2},{0,1,2},{2,1},{},{0,2,5},{3},{1,0,0},{0,1,2,3},{0,2,0} },
+		{ 0, 2 },
+		{ {0,2},{0,2,1},{1,2,0}, {2,0},{1,0,2},{2,1,0},{},{2},{1,0,0},{0,1,2,3},{1} });
+	testDFA(N4d, "N4DFA", false, false,
 		{ {1,0,1,0},{0},{},{1,0,0},{1,1,0},{0,0} },
 		{ {1,1}, {1,0,1}, {1,1,1}, {0,1}, {0,1,0}, {0,1,0,1,1} });
-	// testing N4DFA->F
-	list<list<int>> N4DFA_Fstates = {
-	{0,2},{0,2,1},{1,2,0}, {2,0},{1,0,2}, {2,1,0},
-	{}, {2}, {1,0,0}, {0,1,2,3},{1} };
-	int count13 = 0;
-	for (auto i : N4DFA_Fstates) {
-		if (count13 < 6) {
-			if (!N4DFA->F(i)) {
-				cout << "FAIL accepts NFA->F at " << count13 << endl;
-			}
-		}
-		if (count13 >= 6) {
-			if (N4DFA->F(i)) {
-				cout << "FAIL reject NFA->F at " << count13 << endl;
-			}
-		}
-		count13++;
-	}
+	auto* N5d = NFAtoDFA(N5);
+	testDFA(N5d, "N5d", false, false,
+		{ {0,1},{1},{0,0,0,1},{0,0,1},{0,0,0,0,1},{0, 0, 0, 0, 0, 1} },
+		{ {0}, {}, {1,0}, {1,1}, {1,1,1,0}, {0,1,0} });
+	auto* N6d = NFAtoDFA(N6);
+	testDFA(N6d, "N6d", false, false,
+		{ {1,1},{0,0},{0,1,1},{1,0,0},{0,1,0,0},{1,0,1,1} },
+		{ {}, {1}, {0}, {0,1,0}, {1,0}, {0,1,1,0} });
+	// L(N7d) = only the strings of {00},{01},{10},{11}
+	auto* N7d = NFAtoDFA(N7);
+	testDFA(N7d, "N7d", false, false,
+		{ {0,0},{0,1},{1,0},{1,1},{1,1},{1,1} },
+		{ {}, {1}, {0}, {1,1,0}, {0,1,0}, {1,0,1,0,1,0,0,0,1} });
+	auto* N8d = NFAtoDFA(N8);
+	testDFA(N8d, "N8d", false, false,
+		{ {1,1},{1,1,1,1},{0},{0,0,0},{0,0,0,0,0},{1,1,1,1,1,1} },
+		{ {1}, {0,0}, {0,0,0,0}, {1,0}, {1,1,1}, {0,0,0,0,0,0} });
+	auto* N9d = NFAtoDFA(N9);
+	testDFA(N9d, "N9d", false, false,
+		{ {1,1,1},{1,0,1},{1,0,0,0,1},{1,0,1,0,1},{1,0,1,1},{1,1} },
+		{ {}, {0}, {0,1}, {0,1,1}, {1,0,1,0}, {1} });
+	auto* N10d = NFAtoDFA(N10);
+	testDFA(N10d, "N10d", false, false,
+		{ {},{1},{0},{1,0},{0,1,0,1,0},{1,0,1} },
+		{ {1,0,0}, {1,1}, {0,0}, {1,0,1,0,0}, {0,1,1,0,1}, {1,0,1,0,0,1} });
+	auto* N11d = NFAtoDFA(N11);
+	testDFA(N11d, "N11d", false, false,
+		{ {1,0,1},{1,0,1,1},{1,0,1,0},{1,1,0,1,1},{1,1,0,0,0,1},{1,0,0,1} },
+		{ {}, {1}, {0}, {1,1,0}, {1,0,0}, {0,1} });
+	auto* N12d = NFAtoDFA(N12);
+	testDFA(N12d, "N12d", false, false,
+		{ {},{2,4},{6,8},{3,3,9,6,9},{6},{2,6,6} },
+		{ {2,3}, {4,6,9}, {2,4,9}, {9,3,2}, {1}, {4,4,6,2,2,2,9} });
+	auto* N13d = NFAtoDFA(N13);
+	testDFA(N13d, "N13d", false, false,
+		{ {1},{0,1},{1},{1},{1},{1} },
+		{ {0}, {1,0}, {1,1,0}, {0,1,1}, {1,1}, {1,1,1,1,0} });
+	auto* N14d = NFAtoDFA(N14);
+	testDFA(N14d, "N14d", false, false,
+		{ {1},{1,1},{1,0},{1,1,1,0},{1,1,0},{1,0,0,0} },
+		{ {}, {0}, {0,1}, {0,0,1}, {0,0,0,1}, {0,0,0} });
+	auto* N15d = NFAtoDFA(N15);
+	testDFA(N15d, "N15d", false, false,
+		{ {0,1},{0,0,0,1},{1,1},{1,0,0,1},{0,0,0,0,0,1},{1,0,0,0,0,1} },
+		{ {}, {1}, {1,0}, {1,0,0}, {0,0}, {0,1,0} });
 
 	return 0;
 }
@@ -4123,7 +4176,10 @@ DFA<list<State>, C> * NFAtoDFA(NFA<State, C> *nfa) {
 			for (auto i : s) {
 				ret = nfa->d1(i,c);
 				for (auto j : ret) {
-					u.push_back(j);
+					auto found = find(u.begin(), u.end(), j);
+					if (found == u.end()) {
+						u.push_back(j);
+					}
 				}
 			}
 			if (E(u, nfa) == list<State>{}) {
@@ -4176,4 +4232,40 @@ list<State> E(list<State> x, NFA<State, C>* nfa) {
 		}
 	}
 	return x;
+}
+template<typename State, typename C>
+void testQ_q0_F(DFA<State, C>*dfa, list<list<int>>Q, list<int>q0, list<list<int>>F) {
+	int count = 0;
+	for (auto i : Q) {
+		if (count < 6) {
+			if (!dfa->Q(i)) {
+				cout << "FAIL accepts NFA->Q at " << count << endl;
+			}
+		}
+		if (count >= 6) {
+			if (dfa->Q(i)) {
+				cout << "FAIL reject NFA->Q at " << count << endl;
+			}
+		}
+		count++;
+	}
+	// testing N4DFA->q0
+	if (dfa->q0 != q0) {
+		cout << "FAIL q0" << endl;
+	}
+	// testing N4DFA->F
+	count = 0;
+	for (auto i : F) {
+		if (count < 6) {
+			if (!dfa->F(i)) {
+				cout << "FAIL accepts NFA->F at " << count << endl;
+			}
+		}
+		if (count >= 6) {
+			if (dfa->F(i)) {
+				cout << "FAIL reject NFA->F at " << count << endl;
+			}
+		}
+		count++;
+	}
 }
