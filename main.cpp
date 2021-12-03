@@ -3409,7 +3409,6 @@ int main(void) {
 		{ {0},{0,1,2},{0,1,3,2},{0,2},{0,2,3},{0,1,3} },
 		{ 0 },
 		{ {0,1,2,3}, {0,1,3}, {0,2,3}, {0,3} });
-	
 	auto* N2d = NFAtoDFA(N2);
 	testDFA(N2d, "N2d", false, false,
 		{ {1,0,0},{1,0,1},{1,1,1},{0,0,0,0,1,0,0},{0,1,0,0},{0,1,1,0} },
@@ -3419,10 +3418,6 @@ int main(void) {
 		{ {0,0},{0,0,0},{0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0} },
 		{ {0}, {0,0,0,0,0}, {0,0,0,0,0,0,0}});
 	auto*N4d = NFAtoDFA(N4);
-	testQ_q0_F(N4d,
-		{ {0,2},{1},{1,2},{0,1,2},{2,1},{},{0,2,5},{3},{1,0,0},{0,1,2,3},{0,2,0} },
-		{ 0, 2 },
-		{ {0,2},{0,2,1},{1,2,0}, {2,0},{1,0,2},{2,1,0},{},{2},{1,0,0},{0,1,2,3},{1} });
 	testDFA(N4d, "N4DFA", false, false,
 		{ {1,0,1,0},{0},{},{1,0,0},{1,1,0},{0,0} },
 		{ {1,1}, {1,0,1}, {1,1,1}, {0,1}, {0,1,0}, {0,1,0,1,1} });
@@ -3471,6 +3466,129 @@ int main(void) {
 	testDFA(N15d, "N15d", false, false,
 		{ {0,1},{0,0,0,1},{1,1},{1,0,0,1},{0,0,0,0,0,1},{1,0,0,0,0,1} },
 		{ {}, {1}, {1,0}, {1,0,0}, {0,0}, {0,1,0} });
+	/*
+		TASK #40 - Manually convert a few NFAs to DFAs and verify the output of your compiler with your DFA equality function.
+	*/
+	// N4 manually converted into the DFA N4manual. 
+	// after each definition, there is a testing for equality using the DFA equality function
+	// to ensure that the manually created DFA is equal to the NFA that was converted into a DFA
+	DFA<int, int>* N4manual = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4) || (s == 5); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 0)
+				return 0;
+			if (s == 0 && c == 1)
+				return 1;
+			if (s == 1 && c == 0)
+				return 2;
+			if (s == 1 && c == 1)
+				return 4;
+			if (s == 2 && c == 0)
+				return 3;
+			if (s == 2 && c == 1)
+				return 4;
+			if (s == 3 && c == 0)
+				return 3;
+			if (s == 3 && c == 1)
+				return 2;
+			if (s == 4 && c == 0)
+				return 0;
+			if (s == 4 && c == 1)
+				return 5;
+			if (s == 5)
+				return 5;
+		},
+		[](int s) {return s == 0 || s == 3 ; }
+		);
+	testEquality(N4manual, N4d, true, "N4manual=N4d", binaryAlpha);
+	testQ_q0_F(N4d,
+		{ {0,2},{1},{1,2},{0,1,2},{2,1},{},{0,2,5},{3},{1,0,0},{0,1,2,3},{0,2,0} },
+		{ 0, 2 },
+		{ {0,2},{0,2,1},{1,2,0}, {2,0},{1,0,2},{2,1,0},{},{2},{1,0,0},{0,1,2,3},{1} });
+	// N8 manually converted into the DFA N8manual
+	DFA<int, int>* N8manual = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4) || (s == 5); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 0)
+				return 4;
+			if (s == 0 && c == 1)
+				return 2;
+			if (s == 1 && c == 0)
+				return 5;
+			if (s == 1 && c == 1)
+				return 2;
+			if (s == 2 && c == 0)
+				return 5;
+			if (s == 2 && c == 1)
+				return 1;
+			if (s == 3 && c == 0)
+				return 4;
+			if (s == 3 && c == 1)
+				return 5;
+			if (s == 4 && c == 0)
+				return 3;
+			if (s == 4 && c == 1)
+				return 5;
+			if (s == 5)
+				return 5;
+		},
+		[](int s) {return s == 0 || s == 1 || s == 4; }
+		);
+	testEquality(N8manual, N8d, true, "N8manual=N8d", binaryAlpha);
+	// N5 manually converted into the DFA N5manual
+	// This NFA could run infinitely so I wanted to test this one to make sure it worked right
+	DFA<int, int>* N5manual = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 0)
+				return 0;
+			if (s == 0 && c == 1)
+				return 1;
+			if (s == 1)
+				return 2;
+			if (s == 2)
+				return 2;
+		},
+		[](int s) {return s == 1; }
+		);
+	testEquality(N5manual, N5d, true, "N5manual=N5d", binaryAlpha);
+	// N1 NFA converted into the DFA named N1manual
+	DFA<int, int>* N1manual = new DFA<int, int>(
+		[](int s) {return (s == 0) || (s == 1) || (s == 2) || (s == 3) || (s == 4) || (s == 5); },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 0)
+				return 0;
+			if (s == 0 && c == 1)
+				return 1;
+			if (s == 1 && c == 0)
+				return 3;
+			if (s == 1 && c == 1)
+				return 2;
+			if (s == 2 && c == 0)
+				return 4;
+			if (s == 2 && c == 1)
+				return 2;
+			if (s == 3 && c == 0)
+				return 0;
+			if (s == 3 && c == 1)
+				return 2;
+			if (s == 4 && c == 0)
+				return 5;
+			if (s == 4 && c == 1)
+				return 2;
+			if (s == 5 && c == 0)
+				return 5;
+			if (s == 5 && c == 1)
+				return 2;
+		
+		},
+		[](int s) {return s == 2 || s == 4 || s == 5; }
+		);
+	testEquality(N1manual, N1d, true, "N1manual=N1d", binaryAlpha);
 
 	return 0;
 }
