@@ -1,3 +1,6 @@
+/*
+		TASK 41 - Define a data type to represent regular expressions.
+*/
 #ifndef RX_H
 #define RX_H
 #include <iostream>
@@ -11,14 +14,16 @@ template<typename C>
 class RX_Empty : public RX<C> {
 public:
 	void print(void) override {
+		cout << "null";
 	}
 };
 template<typename C>
 class RX_Epsilon : public RX<C> {
 public:
 	void print(void) override {
+		cout << "e";
 	}
-		list<int> e = {};
+		
 };
 template<typename C>
 class RX_Char : public RX<C> {
@@ -34,8 +39,11 @@ class RX_Union : public RX<C> {
 public:
 	RX_Union(RX<C> *initL, RX<C> *initR) : l(initL), r(initR) {}
 	void print(void) override {
+		cout << "(";
 		this->l->print();
+		cout << "U";
 		this->r->print();
+		cout << ")";
 	}
 	RX<C> *l;
 	RX<C> *r;
@@ -46,6 +54,7 @@ public:
 	RX_Star(RX<C> *initRX) : next(initRX) {}
 	void print(void) override {
 		this->next->print();
+		cout << "*";
 	}
 	RX<C> *next;
 };
@@ -55,8 +64,11 @@ public:
 
 	RX_Circ(RX<C> *initL, RX<C> *initR) : l(initL), r(initR) {}
 	void print(void) override {
+		cout << "(";
 		this->l->print();
+		cout << "o";
 		this->r->print();
+		cout << ")";
 	}
 	RX<C> *l;
 	RX<C> *r;

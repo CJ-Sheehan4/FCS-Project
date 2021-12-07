@@ -3592,15 +3592,23 @@ int main(void) {
 		);
 	testEquality(N1manual, N1d, true, "N1manual=N1d", binaryAlpha);
 
+	/*
+		TASK 42 - Write a printer for regular expressions.
+	*/
+	// RX: (0 U 1)
+	// L(rx1) = {0,1}
 	RX<int> * rx1 = new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1));
+	rx1->print();
+	cout << endl;
+	// RX: (0U1)*o(1o((0U1)o(0U1)))
+	// L(rx2) = all strings that have a one third from the end
 	RX<int>* rx2 = new RX_Circ<int>(new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),
 		new RX_Circ<int>(new RX_Char<int>(1), new RX_Circ<int>(
 			new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)), 
 			new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)))));
-	
-	rx1->print();
-	cout << endl;
 	rx2->print();
+	cout << endl;
+
 	
 
 	return 0;
