@@ -12,9 +12,11 @@
 #include "NFA.h"
 #include "TT.h"
 #include "Config.h"
+#include "RX.h"
 #include "DFA.cpp"
 #include "NFA.cpp"
 #include "TT.cpp"
+
 using namespace std;
 
 // function declarations
@@ -3589,6 +3591,17 @@ int main(void) {
 		[](int s) {return s == 2 || s == 4 || s == 5; }
 		);
 	testEquality(N1manual, N1d, true, "N1manual=N1d", binaryAlpha);
+
+	RX<int> * rx1 = new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1));
+	RX<int>* rx2 = new RX_Circ<int>(new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),
+		new RX_Circ<int>(new RX_Char<int>(1), new RX_Circ<int>(
+			new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)), 
+			new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)))));
+	
+	rx1->print();
+	cout << endl;
+	rx2->print();
+	
 
 	return 0;
 }
