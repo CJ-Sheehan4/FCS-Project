@@ -3593,23 +3593,98 @@ int main(void) {
 	testEquality(N1manual, N1d, true, "N1manual=N1d", binaryAlpha);
 
 	/*
-		TASK 42 - Write a printer for regular expressions.
+		TASK 43 - Write a dozen example regular expressions.
 	*/
 	// RX: (0 U 1)
-	// L(rx1) = {0,1}
+	cout << "L(rx1) = {0,1}" << endl;
 	RX<int> * rx1 = new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1));
 	rx1->print();
-	cout << endl;
+	cout << endl << endl;
 	// RX: (0U1)*o(1o((0U1)o(0U1)))
-	// L(rx2) = all strings that have a one third from the end
+	cout << "L(rx2) = all strings that have a one third from the end" << endl;
 	RX<int>* rx2 = new RX_Circ<int>(new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),
 		new RX_Circ<int>(new RX_Char<int>(1), new RX_Circ<int>(
 			new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)), 
 			new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)))));
 	rx2->print();
-	cout << endl;
-
-	
+	cout << endl << endl;
+	// RX: ((0U1) o (0U1))* 
+	// The RX written above is strictly for the alphabet {0,1}
+	cout << "L(rx3) = strings of an even length e.g. {0,0}, {0,1,0,0}, {1,0,1,0,1,1}  " << endl;
+	RX<int>* rx3 = new RX_Star<int>(new RX_Circ<int>(new RX_Union<int>(new RX_Char(0), new RX_Char(1)), 
+		new RX_Union<int>(new RX_Char(0), new RX_Char(1))));
+	rx3->print();
+	cout << endl << endl;
+	// RX: (0U1)*o0Ue 
+	cout << "L(rx4) = strings over sigma{0,1} ending in 0. Accepts epsilon" << endl;
+	RX<int>* rx4 = new RX_Union<int>(new RX_Circ<int>(new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),
+		new RX_Char<int>(0)),new RX_Epsilon<int>());
+	rx4->print();
+	cout << endl << endl;
+	// RX: ((0U1)*o(0U0)) U ((0U1)*o(1U1))  
+	cout << "L(rx5) = strings of a finite length that end in either '11' or '00'" << endl;
+	RX<int>* rx5 = new RX_Union<int>(
+		new RX_Circ<int>(
+			new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),new RX_Union<int>(
+				new RX_Char<int>(0), new RX_Char<int>(0))),
+		new RX_Circ<int>(
+			new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))), new RX_Union<int>(
+				new RX_Char<int>(1), new RX_Char<int>(1)))
+		);
+	rx5->print();
+	cout << endl << endl;
+	// RX: (0U1) o (0U1) 
+	cout << "L(rx6) = only the strings{00}, {01}, {10}, {11}" << endl;
+	RX<int>* rx6 = new RX_Circ<int>(
+		new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)),
+		new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))
+		);
+	rx6->print();
+	cout << endl << endl;
+	// RX: 1o(0U1)*o1 
+	cout << "L(rx7) = all strings that start and end with the char 1" << endl;
+	RX<int>* rx7 = new RX_Circ<int>(
+		new RX_Circ<int>(
+			new RX_Char<int>(1),
+			new RX_Star<int>(
+				new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)))),
+		new RX_Char<int>(1));
+	rx7->print();
+	cout << endl << endl;
+	// RX: 1*null
+	cout << "L(rx8) = an empty language" << endl;
+	RX<int>* rx8 = new RX_Circ<int>(
+		new RX_Star<int>(new RX_Char<int>(1)),
+		new RX_Null<int>());
+	rx8->print();
+	cout << endl << endl;
+	// RX: ((1o1)* U ((0o0)*o0))*
+	cout << "L(rx9) = all strings that if they are even, will be all 1's, and if they are odd, they are all 0's" << endl;
+	RX<int>* rx9 = new RX_Union<int>(
+		new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(1), new RX_Char<int>(1))),
+		new RX_Star<int>(new RX_Circ<int>(new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), 
+			new RX_Char<int>(0))),new RX_Char<int>(0))));
+	rx9->print();
+	cout << endl << endl;
+	// RX: (0o0)* U ((0o0)o0)*
+	cout << "L(rx10) = strings of 0's that are multiples of 2 or 3" << endl;
+	RX<int>* rx10 = new RX_Union<int>(
+		new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), new RX_Char<int>(0))),
+		new RX_Star<int>(new RX_Circ<int>(new RX_Circ<int>(new RX_Char<int>(0), new RX_Char<int>(0)), new RX_Char<int>(0))));
+	rx10->print();
+	cout << endl << endl;
+	// RX: 0*o1
+	// accepts: {1}, {01}, {001}, {0001}. rejects: {e}, {0}
+	cout << "L(rx11) = L(N5)" << endl;
+	RX<int>* rx11 = new RX_Circ<int>(
+		new RX_Star<int>(new RX_Char<int>(0)), new RX_Char<int>(1));
+	rx11->print();
+	cout << endl << endl;
+	// RX: null*
+	cout << "L(rx12) = {e}" << endl;
+	RX<int>* rx12 = new RX_Star<int>(new RX_Null<int>());
+	rx12->print();
+	cout << endl << endl;
 
 	return 0;
 }

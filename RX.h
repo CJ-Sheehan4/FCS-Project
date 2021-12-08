@@ -8,11 +8,15 @@
 template<typename C>
 class RX {
 public:
+	/*
+	TASK 42 - Write a printer for regular expressions.
+	*/
 	virtual void print(void) = 0;
 };
 template<typename C>
-class RX_Empty : public RX<C> {
+class RX_Null : public RX<C> {
 public:
+	RX_Null() {}
 	void print(void) override {
 		cout << "null";
 	}
@@ -20,10 +24,10 @@ public:
 template<typename C>
 class RX_Epsilon : public RX<C> {
 public:
+	RX_Epsilon() {}
 	void print(void) override {
 		cout << "e";
 	}
-		
 };
 template<typename C>
 class RX_Char : public RX<C> {
