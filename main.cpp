@@ -3594,13 +3594,21 @@ int main(void) {
 
 	/*
 		TASK 43 - Write a dozen example regular expressions.
+		TASK 44 - For each regular expressions, write a few examples of accepted strings and rejected strings.
 	*/
-	// RX: (0 U 1)
+	// rx1: (0 U 1)
 	cout << "L(rx1) = {0,1}" << endl;
 	RX<int> * rx1 = new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1));
 	rx1->print();
 	cout << endl << endl;
-	// RX: (0U1)*o(1o((0U1)o(0U1)))
+	// accepts
+	list<int> rx1str1 = { 0 };
+	list<int> rx1str2 = { 1 };
+	//rejects
+	list<int> rx1str4 = { 1,1 };
+	list<int> rx1str5 = { 0,1,1 };
+	list<int> rx1str6 = { 1,0,0,0 };
+	// rx2: (0U1)*o(1o((0U1)o(0U1)))
 	cout << "L(rx2) = all strings that have a one third from the end" << endl;
 	RX<int>* rx2 = new RX_Circ<int>(new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),
 		new RX_Circ<int>(new RX_Char<int>(1), new RX_Circ<int>(
@@ -3608,20 +3616,44 @@ int main(void) {
 			new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)))));
 	rx2->print();
 	cout << endl << endl;
-	// RX: ((0U1) o (0U1))* 
+	// accepts
+	list<int> rx2str1 = {1,0,0};
+	list<int> rx2str2 = { 1,1,1 };
+	list<int> rx2str3 = { 0,1,0,0 };
+	//rejects
+	list<int> rx2str4 = { 1 };
+	list<int> rx2str5 = { 0,1,1 };
+	list<int> rx2str6 = { 1,0,0,0 };
+	// rx3: ((0U1) o (0U1))* 
 	// The RX written above is strictly for the alphabet {0,1}
-	cout << "L(rx3) = strings of an even length e.g. {0,0}, {0,1,0,0}, {1,0,1,0,1,1}  " << endl;
+	cout << "L(rx3) = strings of an even length" << endl;
 	RX<int>* rx3 = new RX_Star<int>(new RX_Circ<int>(new RX_Union<int>(new RX_Char(0), new RX_Char(1)), 
 		new RX_Union<int>(new RX_Char(0), new RX_Char(1))));
 	rx3->print();
 	cout << endl << endl;
-	// RX: (0U1)*o0Ue 
+	// accepts
+	list<int> rx3str1 = { 0,0 };
+	list<int> rx3str2 = { 0,1,0,0 };
+	list<int> rx3str3 = { 1,0,1,0,1,1};
+	//rejects
+	list<int> rx3str4 = { 1 };
+	list<int> rx3str5 = { 0,1,1 };
+	list<int> rx3str6 = { 1,0,0,0,1 };
+	// rx4: (0U1)*o0Ue 
 	cout << "L(rx4) = strings over sigma{0,1} ending in 0. Accepts epsilon" << endl;
 	RX<int>* rx4 = new RX_Union<int>(new RX_Circ<int>(new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),
 		new RX_Char<int>(0)),new RX_Epsilon<int>());
 	rx4->print();
 	cout << endl << endl;
-	// RX: ((0U1)*o(0o0)) U ((0U1)*o(1o1))  
+	// accepts
+	list<int> rx4str1 = { };
+	list<int> rx4str2 = { 1,1,0 };
+	list<int> rx4str3 = { 0,1,0,0 };
+	//rejects
+	list<int> rx4str4 = { 1 };
+	list<int> rx4str5 = { 0,1,1 };
+	list<int> rx4str6 = { 1,0,0,1 };
+	// rx5: ((0U1)*o(0o0)) U ((0U1)*o(1o1))  
 	cout << "L(rx5) = strings of a finite length that end in either '11' or '00'" << endl;
 	RX<int>* rx5 = new RX_Union<int>(
 		new RX_Circ<int>(
@@ -3633,7 +3665,15 @@ int main(void) {
 		);
 	rx5->print();
 	cout << endl << endl;
-	// RX: (0U1) o (0U1) 
+	// accepts
+	list<int> rx5str1 = { 0,0 };
+	list<int> rx5str2 = { 1,1,1 };
+	list<int> rx5str3 = { 0,1,0,0 };
+	//rejects
+	list<int> rx5str4 = { 1 };
+	list<int> rx5str5 = { 0,1,0 };
+	list<int> rx5str6 = { 1,0,1,0 };
+	// rx6: (0U1) o (0U1) 
 	cout << "L(rx6) = only the strings{00}, {01}, {10}, {11}" << endl;
 	RX<int>* rx6 = new RX_Circ<int>(
 		new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)),
@@ -3641,7 +3681,15 @@ int main(void) {
 		);
 	rx6->print();
 	cout << endl << endl;
-	// RX: 1o(0U1)*o1 
+	// accepts
+	list<int> rx6str1 = { 0,0 };
+	list<int> rx6str2 = { 1,1 };
+	list<int> rx6str3 = { 0,1};
+	//rejects
+	list<int> rx6str4 = { 1 };
+	list<int> rx6str5 = { 0,1,0 };
+	list<int> rx6str6 = { 1,0,1,0 };
+	// rx7: 1o(0U1)*o1 
 	cout << "L(rx7) = all strings that start and end with the char 1" << endl;
 	RX<int>* rx7 = new RX_Circ<int>(
 		new RX_Circ<int>(
@@ -3651,40 +3699,82 @@ int main(void) {
 		new RX_Char<int>(1));
 	rx7->print();
 	cout << endl << endl;
-	// RX: 1*null
+	// accepts
+	list<int> rx7str1 = { 1,1 };
+	list<int> rx7str2 = { 1,0,1 };
+	list<int> rx7str3 = { 1,0,1,0,0,1 };
+	//rejects
+	list<int> rx7str4 = { 1 };
+	list<int> rx7str5 = { 0,1,0 };
+	list<int> rx7str6 = { 1,0,1,0 };
+	// rx8: 1*null
 	cout << "L(rx8) = an empty language" << endl;
 	RX<int>* rx8 = new RX_Circ<int>(
 		new RX_Star<int>(new RX_Char<int>(1)),
 		new RX_Null<int>());
 	rx8->print();
 	cout << endl << endl;
-	// RX: ((1o1)* U ((0o0)*o0))*
-	cout << "L(rx9) = all strings that if they are even, will be all 1's, and if they are odd, they are all 0's" << endl;
+	// accepts nothing
+	// rejects all
+	
+	// rx9: ((1o1)* U ((0o0)*o0))*
+	cout << "L(rx9) = 1's are a consecutive even length, and 0's are of consecutive odd length" << endl;
 	RX<int>* rx9 = new RX_Union<int>(
 		new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(1), new RX_Char<int>(1))),
 		new RX_Star<int>(new RX_Circ<int>(new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), 
 			new RX_Char<int>(0))),new RX_Char<int>(0))));
 	rx9->print();
 	cout << endl << endl;
-	// RX: (0o0)* U ((0o0)o0)*
+	// accepts
+	list<int> rx9str1 = { 0,0,0 };
+	list<int> rx9str2 = { 1,1,0 };
+	list<int> rx9str3 = { 1,1,1,1,0,0,0 };
+	//rejects
+	list<int> rx9str4 = { 1 };
+	list<int> rx9str5 = { 0,1,0 };
+	list<int> rx9str6 = { 1,0,1,0 };
+	// rx10: (0o0)* U ((0o0)o0)*
 	cout << "L(rx10) = strings of 0's that are multiples of 2 or 3" << endl;
 	RX<int>* rx10 = new RX_Union<int>(
 		new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), new RX_Char<int>(0))),
 		new RX_Star<int>(new RX_Circ<int>(new RX_Circ<int>(new RX_Char<int>(0), new RX_Char<int>(0)), new RX_Char<int>(0))));
 	rx10->print();
 	cout << endl << endl;
-	// RX: 0*o1
-	// accepts: {1}, {01}, {001}, {0001}. rejects: {e}, {0}
+	// accepts
+	list<int> rx10str1 = { 0,0 };
+	list<int> rx10str2 = { 0,0,0 };
+	list<int> rx10str3 = { 0,0,0,0,0 };
+	//rejects
+	list<int> rx10str4 = { 1 };
+	list<int> rx10str5 = { 0,1,0 };
+	list<int> rx10str6 = { 0,0,0,0,0 };
+	// rx11: 0*o1
 	cout << "L(rx11) = L(N5)" << endl;
 	RX<int>* rx11 = new RX_Circ<int>(
 		new RX_Star<int>(new RX_Char<int>(0)), new RX_Char<int>(1));
 	rx11->print();
 	cout << endl << endl;
-	// RX: null*
+	// accepts
+	list<int> rx11str1 = { 1 };
+	list<int> rx11str2 = { 0,1 };
+	list<int> rx11str3 = { 0,0,1 };
+	//rejects
+	list<int> rx11str4 = { };
+	list<int> rx11str5 = { 0 };
+	list<int> rx11str6 = { 0,0,0,0,0 };
+	// rx12: null*
 	cout << "L(rx12) = {e}" << endl;
 	RX<int>* rx12 = new RX_Star<int>(new RX_Null<int>());
 	rx12->print();
 	cout << endl << endl;
+	// accepts
+	list<int> rx12str1 = { };
+	//rejects
+	list<int> rx12str4 = { 1 };
+	list<int> rx12str5 = { 0,1,0 };
+	list<int> rx12str6 = { 0,0,0,0,0 };
+
+
 
 	return 0;
 }
