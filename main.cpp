@@ -3621,14 +3621,14 @@ int main(void) {
 		new RX_Char<int>(0)),new RX_Epsilon<int>());
 	rx4->print();
 	cout << endl << endl;
-	// RX: ((0U1)*o(0U0)) U ((0U1)*o(1U1))  
+	// RX: ((0U1)*o(0o0)) U ((0U1)*o(1o1))  
 	cout << "L(rx5) = strings of a finite length that end in either '11' or '00'" << endl;
 	RX<int>* rx5 = new RX_Union<int>(
 		new RX_Circ<int>(
-			new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),new RX_Union<int>(
+			new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),new RX_Circ<int>(
 				new RX_Char<int>(0), new RX_Char<int>(0))),
 		new RX_Circ<int>(
-			new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))), new RX_Union<int>(
+			new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))), new RX_Circ<int>(
 				new RX_Char<int>(1), new RX_Char<int>(1)))
 		);
 	rx5->print();
