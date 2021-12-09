@@ -8,6 +8,8 @@
 #include <typeinfo>
 #include <memory>
 #include <variant>
+#include <cstdlib>
+#include <ctime>
 #include "DFA.h"
 #include "NFA.h"
 #include "TT.h"
@@ -88,6 +90,10 @@ template<typename State, typename C>
 list<State> E(list<State> x, NFA<State, C>* nfa);
 template<typename State, typename C>
 void testQ_q0_F(DFA<State, C>* dfa, list<list<int>>Q, list<int>q0, list<list<int>>F);
+template<typename C>
+pair<bool, list<int>> generate(RX<C>* rx);
+list<int> listCirc(list<int> a, list<int> b);
+void generateTest(list<RX<int>*> RXL);
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -3717,12 +3723,17 @@ int main(void) {
 	// accepts nothing
 	// rejects all
 	
-	// rx9: ((1o1)* U ((0o0)*o0))*
+	// rx9: ((1o1)*o((0o0)*o0)) U (((0o0)*o0)o(1o1)*)
 	cout << "L(rx9) = 1's are a consecutive even length, and 0's are of consecutive odd length" << endl;
 	RX<int>* rx9 = new RX_Union<int>(
+		new RX_Circ<int>(new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(1), new RX_Char<int>(1))),
+			new RX_Circ<int>(new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), new RX_Char<int>(0))), new RX_Char<int>(0))),
+		new RX_Circ<int>(new RX_Circ<int>(new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), new RX_Char<int>(0))),new RX_Char<int>(0)),
+			new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(1), new RX_Char<int>(1)))));
+	/*RX<int>* rx9 = new RX_Union<int>(
 		new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(1), new RX_Char<int>(1))),
 		new RX_Star<int>(new RX_Circ<int>(new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), 
-			new RX_Char<int>(0))),new RX_Char<int>(0))));
+			new RX_Char<int>(0))),new RX_Char<int>(0))));*/
 	rx9->print();
 	cout << endl << endl;
 	// accepts
@@ -3773,9 +3784,11 @@ int main(void) {
 	list<int> rx12str4 = { 1 };
 	list<int> rx12str5 = { 0,1,0 };
 	list<int> rx12str6 = { 0,0,0,0,0 };
-
-
-
+	/*
+		Testing generate function
+	*/
+	generateTest({ rx1, rx2, rx3, rx4, rx5, rx6, rx7, rx8, rx9, rx10, rx11, rx12 });
+	
 	return 0;
 }
 /*
@@ -4571,5 +4584,116 @@ void testQ_q0_F(DFA<State, C>*dfa, list<list<int>>Q, list<int>q0, list<list<int>
 			}
 		}
 		count++;
+	}
+}
+/*
+	TASK #45 - (Generator) Write a function that accepts a regular expressions 
+	and generates a random string that would be accepted by it.
+*/
+template<typename C>
+pair<bool, list<int>> generate(RX<C> * rx) {
+	pair<bool, list<int>> ret;
+	ret.first = true;
+	if (rx->id() == 'n') {
+		ret.first = false;
+		return ret;
+	}
+	else if (rx->id() == 'e') {
+		return ret;
+	}
+	else if (rx->id() == 'c') {
+		ret.second = { rx->getC() };
+		return ret;
+	}
+	else if(rx->id() == 'u') {
+		srand(time(0));
+		int num = rand() % 10;
+		if (num > 5) {
+			ret = generate(rx->getL());
+			if (ret.first != false) {
+				return ret;
+			}
+		}
+		else {
+			ret = generate(rx->getR());
+			if (ret.first != false) {
+				return ret;
+			}
+		}
+	}
+	else if (rx->id() == 's') {
+		srand(time(0));
+		int num = rand() % 7;
+		if (num == 0 || (rx->getL()->id() == 'n')) {
+			ret.second = {};
+			return ret;
+		}
+		int i = 0;
+		while(i != num) {
+			ret = generate(rx->getL());
+			i++;
+		}
+		pair<bool, list<int>> ret2;
+		ret2.first = true;
+		num = rand() % 7;
+		if (num == 0) {
+			ret2.second = {};
+			return ret2;
+		}
+		i = 0;
+		while (i != num) {
+			ret2 = generate(rx->getL());
+			i++;
+		}
+		if (ret.first != false && ret2.first != false) {
+			ret.second = listCirc(ret.second, ret2.second);
+			return ret;
+		}
+		else {
+			ret.first = false;
+			return ret;
+		}
+	}
+	else if(rx->id() == 'o') {
+		ret = generate(rx->getL());
+		pair<bool, list<int>> ret2;
+		ret2.first = true;
+		ret2 = generate(rx->getR());
+		if (ret.first != false && ret2.first != false) {
+			ret.second = listCirc(ret.second, ret2.second);
+			return ret;
+		}
+		else {
+			ret.first = false;
+			return ret;
+		}
+	}
+	else {
+		ret.first = false;
+		return ret;
+	}
+}
+list<int> listCirc(list<int> a, list<int> b) {
+	for (auto i : b) {
+		a.push_back(i);
+	}
+	return a;
+}
+void generateTest(list<RX<int>*> RXL) {
+	cout << "TESTING GENERATE FUNCTION:" << endl;
+	int count = 1;
+	for (auto i : RXL) {
+		pair<bool, list<int>> gRet = generate(i);
+			cout << "RX" << count << ":" << " {";
+			if (gRet.first == false) {
+				cout << "Empty language";
+			}
+			else {
+				for (auto i : gRet.second) {
+					cout << i;
+				}
+			}
+			cout << "}" << endl;
+			count++;
 	}
 }

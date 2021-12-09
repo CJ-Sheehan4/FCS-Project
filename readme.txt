@@ -30,3 +30,6 @@ in the previous commit.
 Task #32:
 I created a seperate file for the Config class opposed to having it defined at the top of main. I felt it was
 approriate to utilize this class to write the (Backtracking) algorithm/function. 
+
+update: 
+I updated my regex number 9 (rx9) example because it was wrong. I added my hand drawn tree as a pdf with this commit.  

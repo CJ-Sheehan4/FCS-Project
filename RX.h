@@ -12,6 +12,10 @@ public:
 	TASK 42 - Write a printer for regular expressions.
 	*/
 	virtual void print(void) = 0;
+	virtual char id(void) = 0;
+	virtual RX<int>* getL(void) = 0;
+	virtual RX<int>* getR(void) = 0;
+	virtual C getC(void) = 0;
 };
 template<typename C>
 class RX_Null : public RX<C> {
@@ -19,6 +23,18 @@ public:
 	RX_Null() {}
 	void print(void) override {
 		cout << "null";
+	}
+	char id(void) override{
+		return 'n';
+	}
+	RX<int>* getL(void) override {
+		return nullptr;
+	}
+	RX<int>* getR(void) override {
+		return nullptr;
+	}
+	C getC(void) override {
+		return -1;
 	}
 };
 template<typename C>
@@ -28,6 +44,18 @@ public:
 	void print(void) override {
 		cout << "e";
 	}
+	char id(void) override {
+		return 'e';
+	}
+	RX<int>* getL(void) override {
+		return nullptr;
+	}
+	RX<int>* getR(void) override {
+		return nullptr;
+	}
+	C getC(void) override {
+		return -1;
+	}
 };
 template<typename C>
 class RX_Char : public RX<C> {
@@ -35,6 +63,18 @@ public:
 	RX_Char(C initC) : c(initC) {}
 	void print(void) override {
 		cout << c;
+	}
+	char id(void) override {
+		return 'c';
+	}
+	RX<int>* getL(void) override {
+		return nullptr;
+	}
+	RX<int>* getR(void) override {
+		return nullptr;
+	}
+	C getC(void) override {
+		return c;
 	}
 	C c;
 };
@@ -49,6 +89,18 @@ public:
 		this->r->print();
 		cout << ")";
 	}
+	char id(void) override {
+		return 'u';
+	}
+	RX<int>* getL(void) override {
+		return l;
+	}
+	RX<int>* getR(void) override {
+		return r;
+	}
+	C getC(void) override {
+		return -1;
+	}
 	RX<C> *l;
 	RX<C> *r;
 };
@@ -59,6 +111,18 @@ public:
 	void print(void) override {
 		this->next->print();
 		cout << "*";
+	}
+	char id(void) override {
+		return 's';
+	}
+	RX<int>* getL(void) override {
+		return next;
+	}
+	RX<int>* getR(void) override {
+		return next;
+	}
+	C getC(void) override {
+		return -1;
 	}
 	RX<C> *next;
 };
@@ -73,6 +137,18 @@ public:
 		cout << "o";
 		this->r->print();
 		cout << ")";
+	}
+	char id(void) override {
+		return 'o';
+	}
+	RX<int>* getL(void) override {
+		return l;
+	}
+	RX<int>* getR(void) override {
+		return r;
+	}
+	C getC(void) override {
+		return -1;
 	}
 	RX<C> *l;
 	RX<C> *r;
