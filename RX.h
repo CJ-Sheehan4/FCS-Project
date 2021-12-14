@@ -5,7 +5,7 @@
 #define RX_H
 #include <iostream>
 #include <list>
-template<typename C>
+template<typename State,typename C>
 class RX {
 public:
 	/*
@@ -13,12 +13,12 @@ public:
 	*/
 	virtual void print(void) = 0;
 	virtual char id(void) = 0;
-	virtual RX<int>* getL(void) = 0;
-	virtual RX<int>* getR(void) = 0;
+	virtual RX<State, C>* getL(void) = 0;
+	virtual RX<State, C>* getR(void) = 0;
 	virtual C getC(void) = 0;
 };
-template<typename C>
-class RX_Null : public RX<C> {
+template<typename State, typename C>
+class RX_Null : public RX<State, C> {
 public:
 	RX_Null() {}
 	void print(void) override {
@@ -27,18 +27,18 @@ public:
 	char id(void) override{
 		return 'n';
 	}
-	RX<int>* getL(void) override {
+	RX<State, C>* getL(void) override {
 		return nullptr;
 	}
-	RX<int>* getR(void) override {
+	RX<State, C>* getR(void) override {
 		return nullptr;
 	}
 	C getC(void) override {
 		return -1;
 	}
 };
-template<typename C>
-class RX_Epsilon : public RX<C> {
+template<typename State, typename C>
+class RX_Epsilon : public RX<State, C> {
 public:
 	RX_Epsilon() {}
 	void print(void) override {
@@ -47,18 +47,18 @@ public:
 	char id(void) override {
 		return 'e';
 	}
-	RX<int>* getL(void) override {
+	RX<State, C>* getL(void) override {
 		return nullptr;
 	}
-	RX<int>* getR(void) override {
+	RX<State, C>* getR(void) override {
 		return nullptr;
 	}
 	C getC(void) override {
 		return -1;
 	}
 };
-template<typename C>
-class RX_Char : public RX<C> {
+template<typename State, typename C>
+class RX_Char : public RX<State, C> {
 public:
 	RX_Char(C initC) : c(initC) {}
 	void print(void) override {
@@ -67,10 +67,10 @@ public:
 	char id(void) override {
 		return 'c';
 	}
-	RX<int>* getL(void) override {
+	RX<State, C>* getL(void) override {
 		return nullptr;
 	}
-	RX<int>* getR(void) override {
+	RX<State, C>* getR(void) override {
 		return nullptr;
 	}
 	C getC(void) override {
@@ -78,10 +78,10 @@ public:
 	}
 	C c;
 };
-template<typename C>
-class RX_Union : public RX<C> {
+template<typename State, typename C>
+class RX_Union : public RX<State, C> {
 public:
-	RX_Union(RX<C> *initL, RX<C> *initR) : l(initL), r(initR) {}
+	RX_Union(RX<State, C>*initL, RX<State, C>*initR) : l(initL), r(initR) {}
 	void print(void) override {
 		cout << "(";
 		this->l->print();
@@ -92,22 +92,22 @@ public:
 	char id(void) override {
 		return 'u';
 	}
-	RX<int>* getL(void) override {
+	RX<State, C>* getL(void) override {
 		return l;
 	}
-	RX<int>* getR(void) override {
+	RX<State, C>* getR(void) override {
 		return r;
 	}
 	C getC(void) override {
 		return -1;
 	}
-	RX<C> *l;
-	RX<C> *r;
+	RX<State, C>*l;
+	RX<State, C>*r;
 };
-template<typename C>
-class RX_Star : public RX<C> {
+template<typename State, typename C>
+class RX_Star : public RX<State, C> {
 public:
-	RX_Star(RX<C> *initRX) : next(initRX) {}
+	RX_Star(RX<State, C>*initRX) : next(initRX) {}
 	void print(void) override {
 		this->next->print();
 		cout << "*";
@@ -115,22 +115,22 @@ public:
 	char id(void) override {
 		return 's';
 	}
-	RX<int>* getL(void) override {
+	RX<State, C>* getL(void) override {
 		return next;
 	}
-	RX<int>* getR(void) override {
+	RX<State, C>* getR(void) override {
 		return next;
 	}
 	C getC(void) override {
 		return -1;
 	}
-	RX<C> *next;
+	RX<State, C>*next;
 };
-template<typename C>
-class RX_Circ : public RX<C> {
+template<typename State, typename C>
+class RX_Circ : public RX<State, C> {
 public:
 
-	RX_Circ(RX<C> *initL, RX<C> *initR) : l(initL), r(initR) {}
+	RX_Circ(RX<State, C>*initL, RX<State, C>*initR) : l(initL), r(initR) {}
 	void print(void) override {
 		cout << "(";
 		this->l->print();
@@ -141,16 +141,16 @@ public:
 	char id(void) override {
 		return 'o';
 	}
-	RX<int>* getL(void) override {
+	RX<State, C>* getL(void) override {
 		return l;
 	}
-	RX<int>* getR(void) override {
+	RX<State, C>* getR(void) override {
 		return r;
 	}
 	C getC(void) override {
 		return -1;
 	}
-	RX<C> *l;
-	RX<C> *r;
+	RX<State, C>*l;
+	RX<State, C>*r;
 };
 #endif

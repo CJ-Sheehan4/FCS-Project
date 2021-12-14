@@ -33,3 +33,9 @@ approriate to utilize this class to write the (Backtracking) algorithm/function.
 
 update: 
 I updated my regex number 9 (rx9) example because it was wrong. I added my hand drawn tree as a pdf with this commit.  
+
+TASK #46:
+I struggled with this and spend days on it. I initially attempted to write a function that would convert any NFA into 
+a one State NFA (e.g. NFA<State, C> ) which is all the large chunks of code that are comments out. 
+I could not figure that out and ended up wasting days on it. I went with the data type
+of NFAType that hold all types of NFA's in it. The compile functions returns this type and it id defined at the top of main. 

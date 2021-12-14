@@ -10,6 +10,7 @@
 #include <variant>
 #include <cstdlib>
 #include <ctime>
+#include <map>
 #include "DFA.h"
 #include "NFA.h"
 #include "TT.h"
@@ -19,8 +20,47 @@
 #include "NFA.cpp"
 #include "TT.cpp"
 
-using namespace std;
 
+using namespace std;
+template<typename State, typename C>
+class NFAType {
+public:
+	NFAType(NFA<State, C>* nfa) : single(nfa), initSingle(true) {}
+	NFAType(NFA<pair<int, State>, C>* nfa) : tpair(nfa), init_tpair(true) {}
+	NFAType(NFA<pair<int, pair<int, State>>, C>* nfa) : tpair2(nfa), init_tpair2(true) {}
+	NFAType(NFA<pair<int, pair<int, pair<int, State>>>, C>* nfa) : tpair3(nfa), init_tpair3(true) {}
+	NFAType(NFA<pair<int, pair<int, pair<int, pair<int, State>>>>, C>* nfa) : tpair4(nfa), init_tpair4(true) {}
+	NFAType(NFA<pair<int, pair<int, pair<int, pair<int, pair<int, State>>>>>, C>* nfa) : tpair5(nfa), init_tpair5(true) {}
+	int whatType() {
+		if (initSingle) {
+			return 1;
+		}
+		else if(init_tpair){
+			return 2;
+		}
+		else if (init_tpair2) {
+			return 3;
+		}
+		else if (init_tpair3) {
+			return 4;
+		}
+		else if (init_tpair4) {
+			return 5;
+		}
+	}
+	NFA<State, C>* single;
+	bool initSingle;
+	NFA<pair<int,State>, C>* tpair;
+	bool init_tpair;
+	NFA<pair<int, pair<int, State>>, C>* tpair2;
+	bool init_tpair2;
+	NFA<pair<int, pair<int, pair<int, State>>>, C>* tpair3;
+	bool init_tpair3;
+	NFA<pair<int, pair<int, pair<int, pair<int, State>>>>, C>* tpair4;
+	bool init_tpair4;
+	NFA<pair<int, pair<int, pair<int, pair<int, pair<int, State>>>>>, C>* tpair5;
+	bool init_tpair5;
+};
 // function declarations
 list<list<int>> getLayer(list<int> sigma, int N);
 list<int> lexi(list<int> sigma, int N);
@@ -83,17 +123,26 @@ template<typename State, typename C>
 void testNFA(NFA<State, C>* nfa, string name, bool noAccepts, bool allAccepts,
 	list<list<int>> strL);
 template<typename State, typename C>
-NFA<State, C>* star(NFA<State, C>* a);
+NFA<pair<int, State>, C>* star(NFA<State, C>* a);
 template<typename State, typename C>
 DFA<list<State>, C>* NFAtoDFA(NFA<State, C>* nfa);
 template<typename State, typename C>
 list<State> E(list<State> x, NFA<State, C>* nfa);
 template<typename State, typename C>
 void testQ_q0_F(DFA<State, C>* dfa, list<list<int>>Q, list<int>q0, list<list<int>>F);
-template<typename C>
-pair<bool, list<int>> generate(RX<C>* rx);
+template<typename State, typename C>
+pair<bool, list<int>> generate(RX<State, C>* rx);
 list<int> listCirc(list<int> a, list<int> b);
-void generateTest(list<RX<int>*> RXL);
+void generateTest(list<RX<int, int>*> RXL);
+template<typename State, typename C>
+NFAType<State,C> compile(RX<State, C>* rx);
+//template<typename State, typename State1, typename C>
+//NFA<State, C>* oneStateUnion(NFA<State1, C>* u, State temp);
+//template<typename State, typename State1, typename C>
+//NFA<State, C>* oneStateConcat(NFA<State1, C>* u, State temp);
+template<typename State, typename C>
+void testCompile(RX<State, C>* rx, string name);
+
 
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
@@ -3215,6 +3264,10 @@ int main(void) {
 		Testing Union
 	*/
 	auto* N4_U_N6 = unionNFA(N4, N6);
+	auto* N1_U_N2 = unionNFA(N1, N2);
+	auto* N4_U_N6_U_N1_U_N2 = unionNFA(N4_U_N6, N1_U_N2);
+
+	//auto* testUNION = unionNFA(N4_U_N6, N1_U_N2);
 	list<pair<int,int>> N4_U_N6_Q = { pair<int,int>(-1,-1), pair<int,int>(0, 0), pair<int,int>(0, 1), pair<int,int>(0, 2),
 	pair<int,int>(1, 0), pair<int,int>(1, 1), pair<int,int>(1, 2), pair<int,int>(1, 3), pair<int,int>(1, 4), 
 	pair<int,int>(1, 5), pair<int,int>(1, 6) };
@@ -3229,13 +3282,12 @@ int main(void) {
 			cout << "FAIL Q" << endl;
 		}
 	}
-	if (N4_U_N6->q0 != pair<int, int>(-1,-1)) {
-		cout << "FAIL q0" << endl;
-	}
+
 	testNFA(N4_U_N6, "N4_U_N6", false, false,
 		{ {0}, {0,0}, {1,1}, {1,1,0}, {1,0,0,0}, {1,0,0,1,1},	//tests that should accept
 		{1}, {1,1,0,1}, {1,0}, {1,0,0,0,1}, {0,0,1}, {0,1} }	// tests that should reject
 	);
+	//auto* N4_U_N6_N1 = unionNFA(N4_U_N6, N1);
 	/*
 		TASK #35 - Testing concat
 	*/
@@ -3604,7 +3656,7 @@ int main(void) {
 	*/
 	// rx1: (0 U 1)
 	cout << "L(rx1) = {0,1}" << endl;
-	RX<int> * rx1 = new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1));
+	RX<int,int> * rx1 = new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1));
 	rx1->print();
 	cout << endl << endl;
 	// accepts
@@ -3616,10 +3668,15 @@ int main(void) {
 	list<int> rx1str6 = { 1,0,0,0 };
 	// rx2: (0U1)*o(1o((0U1)o(0U1)))
 	cout << "L(rx2) = all strings that have a one third from the end" << endl;
-	RX<int>* rx2 = new RX_Circ<int>(new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),
-		new RX_Circ<int>(new RX_Char<int>(1), new RX_Circ<int>(
-			new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)), 
-			new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)))));
+	RX<int, int>* rx2 = new RX_Circ<int, int>(new RX_Star<int, int>(new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1))),
+		new RX_Circ<int, int>(new RX_Char<int, int>(1), new RX_Circ<int, int>(
+			new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1)),
+			new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1)))));
+	//RX<int, int > * rx2 = new RX_Circ<int, int>(new RX_Circ<int,int>(new RX_Circ<int,int>(
+	//	new RX_Union<int,int>(new RX_Char<int,int>(0), new RX_Char<int, int>(1)),
+	//	new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1))),
+	//	new RX_Char<int, int>(1)),
+	//	new RX_Star<int,int>(new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1))));
 	rx2->print();
 	cout << endl << endl;
 	// accepts
@@ -3633,8 +3690,8 @@ int main(void) {
 	// rx3: ((0U1) o (0U1))* 
 	// The RX written above is strictly for the alphabet {0,1}
 	cout << "L(rx3) = strings of an even length" << endl;
-	RX<int>* rx3 = new RX_Star<int>(new RX_Circ<int>(new RX_Union<int>(new RX_Char(0), new RX_Char(1)), 
-		new RX_Union<int>(new RX_Char(0), new RX_Char(1))));
+	RX<int, int>* rx3 = new RX_Star<int, int>(new RX_Circ<int, int>(new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1)),
+		new RX_Union<int,int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1))));
 	rx3->print();
 	cout << endl << endl;
 	// accepts
@@ -3647,8 +3704,9 @@ int main(void) {
 	list<int> rx3str6 = { 1,0,0,0,1 };
 	// rx4: (0U1)*o0Ue 
 	cout << "L(rx4) = strings over sigma{0,1} ending in 0. Accepts epsilon" << endl;
-	RX<int>* rx4 = new RX_Union<int>(new RX_Circ<int>(new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),
-		new RX_Char<int>(0)),new RX_Epsilon<int>());
+	RX<int,int>* rx4 = new RX_Union<int, int>(new RX_Circ<int, int>(
+		new RX_Star<int, int>(new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1))),
+		new RX_Char<int, int>(0)),new RX_Epsilon<int, int>());
 	rx4->print();
 	cout << endl << endl;
 	// accepts
@@ -3661,13 +3719,13 @@ int main(void) {
 	list<int> rx4str6 = { 1,0,0,1 };
 	// rx5: ((0U1)*o(0o0)) U ((0U1)*o(1o1))  
 	cout << "L(rx5) = strings of a finite length that end in either '11' or '00'" << endl;
-	RX<int>* rx5 = new RX_Union<int>(
-		new RX_Circ<int>(
-			new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))),new RX_Circ<int>(
-				new RX_Char<int>(0), new RX_Char<int>(0))),
-		new RX_Circ<int>(
-			new RX_Star<int>(new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))), new RX_Circ<int>(
-				new RX_Char<int>(1), new RX_Char<int>(1)))
+	RX<int, int>* rx5 = new RX_Union<int, int>(
+		new RX_Circ<int, int>(
+			new RX_Star<int, int>(new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1))),new RX_Circ<int, int>(
+				new RX_Char<int, int>(0), new RX_Char<int, int>(0))),
+		new RX_Circ<int, int>(
+			new RX_Star<int, int>(new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1))), new RX_Circ<int, int>(
+				new RX_Char<int, int>(1), new RX_Char<int, int>(1)))
 		);
 	rx5->print();
 	cout << endl << endl;
@@ -3681,9 +3739,9 @@ int main(void) {
 	list<int> rx5str6 = { 1,0,1,0 };
 	// rx6: (0U1) o (0U1) 
 	cout << "L(rx6) = only the strings{00}, {01}, {10}, {11}" << endl;
-	RX<int>* rx6 = new RX_Circ<int>(
-		new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)),
-		new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1))
+	RX<int, int>* rx6 = new RX_Circ<int, int>(
+		new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1)),
+		new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1))
 		);
 	rx6->print();
 	cout << endl << endl;
@@ -3697,12 +3755,12 @@ int main(void) {
 	list<int> rx6str6 = { 1,0,1,0 };
 	// rx7: 1o(0U1)*o1 
 	cout << "L(rx7) = all strings that start and end with the char 1" << endl;
-	RX<int>* rx7 = new RX_Circ<int>(
-		new RX_Circ<int>(
-			new RX_Char<int>(1),
-			new RX_Star<int>(
-				new RX_Union<int>(new RX_Char<int>(0), new RX_Char<int>(1)))),
-		new RX_Char<int>(1));
+	RX<int, int>* rx7 = new RX_Circ<int, int>(
+		new RX_Circ<int, int>(
+			new RX_Char<int, int>(1),
+			new RX_Star<int, int>(
+				new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1)))),
+		new RX_Char<int, int>(1));
 	rx7->print();
 	cout << endl << endl;
 	// accepts
@@ -3715,9 +3773,9 @@ int main(void) {
 	list<int> rx7str6 = { 1,0,1,0 };
 	// rx8: 1*null
 	cout << "L(rx8) = an empty language" << endl;
-	RX<int>* rx8 = new RX_Circ<int>(
-		new RX_Star<int>(new RX_Char<int>(1)),
-		new RX_Null<int>());
+	RX<int, int>* rx8 = new RX_Circ<int, int>(
+		new RX_Star<int, int>(new RX_Char<int, int>(1)),
+		new RX_Null<int, int>());
 	rx8->print();
 	cout << endl << endl;
 	// accepts nothing
@@ -3725,11 +3783,12 @@ int main(void) {
 	
 	// rx9: ((1o1)*o((0o0)*o0)) U (((0o0)*o0)o(1o1)*)
 	cout << "L(rx9) = 1's are a consecutive even length, and 0's are of consecutive odd length" << endl;
-	RX<int>* rx9 = new RX_Union<int>(
-		new RX_Circ<int>(new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(1), new RX_Char<int>(1))),
-			new RX_Circ<int>(new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), new RX_Char<int>(0))), new RX_Char<int>(0))),
-		new RX_Circ<int>(new RX_Circ<int>(new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), new RX_Char<int>(0))),new RX_Char<int>(0)),
-			new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(1), new RX_Char<int>(1)))));
+	RX<int, int>* rx9 = new RX_Union<int, int>(
+		new RX_Circ<int, int>(new RX_Star<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(1), new RX_Char<int, int>(1))),
+			new RX_Circ<int, int>(new RX_Star<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(0))), new RX_Char<int, int>(0))),
+		new RX_Circ<int, int>(new RX_Circ<int, int>(
+			new RX_Star<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(0))),new RX_Char<int, int>(0)),
+			new RX_Star<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(1), new RX_Char<int, int>(1)))));
 	/*RX<int>* rx9 = new RX_Union<int>(
 		new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(1), new RX_Char<int>(1))),
 		new RX_Star<int>(new RX_Circ<int>(new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), 
@@ -3746,9 +3805,10 @@ int main(void) {
 	list<int> rx9str6 = { 1,0,1,0 };
 	// rx10: (0o0)* U ((0o0)o0)*
 	cout << "L(rx10) = strings of 0's that are multiples of 2 or 3" << endl;
-	RX<int>* rx10 = new RX_Union<int>(
-		new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), new RX_Char<int>(0))),
-		new RX_Star<int>(new RX_Circ<int>(new RX_Circ<int>(new RX_Char<int>(0), new RX_Char<int>(0)), new RX_Char<int>(0))));
+	RX<int, int>* rx10 = new RX_Union<int, int>(
+		new RX_Star<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(0))),
+		new RX_Star<int, int>(
+			new RX_Circ<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(0)), new RX_Char<int, int>(0))));
 	rx10->print();
 	cout << endl << endl;
 	// accepts
@@ -3761,8 +3821,8 @@ int main(void) {
 	list<int> rx10str6 = { 0,0,0,0,0 };
 	// rx11: 0*o1
 	cout << "L(rx11) = L(N5)" << endl;
-	RX<int>* rx11 = new RX_Circ<int>(
-		new RX_Star<int>(new RX_Char<int>(0)), new RX_Char<int>(1));
+	RX<int, int>* rx11 = new RX_Circ<int, int>(
+		new RX_Star<int, int>(new RX_Char<int, int>(0)), new RX_Char<int, int>(1));
 	rx11->print();
 	cout << endl << endl;
 	// accepts
@@ -3775,7 +3835,7 @@ int main(void) {
 	list<int> rx11str6 = { 0,0,0,0,0 };
 	// rx12: null*
 	cout << "L(rx12) = {e}" << endl;
-	RX<int>* rx12 = new RX_Star<int>(new RX_Null<int>());
+	RX<int, int>* rx12 = new RX_Star<int, int>(new RX_Null<int, int>());
 	rx12->print();
 	cout << endl << endl;
 	// accepts
@@ -3788,7 +3848,37 @@ int main(void) {
 		Testing generate function
 	*/
 	generateTest({ rx1, rx2, rx3, rx4, rx5, rx6, rx7, rx8, rx9, rx10, rx11, rx12 });
+	/*
+		Testing compile function
+	*/
+	RX<int, int>* testStar= new RX_Star<int, int>(new RX_Union<int,int>(new RX_Char<int,int>(0), new RX_Char<int, int>(1)));
+
+	NFAType<int, int> test = compile(testStar);
+	if (!test.tpair2->accepts({ 0,0})) {
+		cout << endl << "####FAIL###" << endl;
+	}
+	NFAType<int, int> test1 = compile(rx2);
 	
+	if (!test1.tpair4->accepts({ 1,0,0 })) {
+		cout << endl << "####FAIL### test 1" << endl;
+	}
+	testNFA(test1.tpair4, "test1.tpair4", false, false,
+		{ {1,0,0}, {0,0,1,0,1}, {1,1,1}, {1,1,0}, {1,1,0,0}, {0,1,1,0,1,0,1},	//tests that should accept
+		{1}, {1,0,0,1}, {1,0}, {1,0,0,0,1}, {0,0,1}, {0,1,0,0,0} }	// tests that should reject
+	);
+	testCompile(rx1, "rx1");
+	testCompile(rx2, "rx2");
+	testCompile(rx3, "rx3");
+	testCompile(rx4, "rx4");
+	testCompile(rx5, "rx5");
+	testCompile(rx6, "rx6");
+	testCompile(rx7, "rx7");
+	testCompile(rx8, "rx8");
+	testCompile(rx9, "rx9");
+	testCompile(rx10, "rx10");
+	testCompile(rx11, "rx11");
+	testCompile(rx12, "rx12");
+
 	return 0;
 }
 /*
@@ -4317,9 +4407,9 @@ template<typename State, typename C>
 NFA<pair<int, State>, C>* unionNFA(NFA<State, C>* a, NFA<State, C>* b) {
 	NFA<pair<int, State>, C>* nfa = new NFA<pair<int, State>, C>(
 		[=](pair<int, State> s) {
-			return (((s.first == 0) && a->Q(s.second)) || ((s.first == 1) && b->Q(s.second)) || (s.first == -1 && s.second == -1));
+			return (((s.first == 0) && a->Q(s.second)) || ((s.first == 1) && b->Q(s.second)) || (s.first == -1));
 		},
-		pair<int, State>(-1, -1),
+		pair<int, State>(-1, a->q0),
 		[=](pair<int, State> s, C c) {
 			if (s.first == 0) {
 				return nfaH(a->d1(s.second, c), 0);
@@ -4331,7 +4421,7 @@ NFA<pair<int, State>, C>* unionNFA(NFA<State, C>* a, NFA<State, C>* b) {
 				return list<pair<int, State>>{};
 		},
 		[=](pair<int, State> s) {
-			if (s.first == -1 && s.second == -1) {
+			if (s.first == -1 ) {
 				return list<pair<int, State>>{pair<int, State>(0,a->q0), pair<int, State>(1,b->q0)};
 			}
 			else if (s.first == 0) {
@@ -4427,35 +4517,37 @@ void testNFA(NFA<State, C> *nfa, string name, bool noAccepts, bool allAccepts,
 	accepts a string if it can be broken into N pieces, each accepted by the argument.
 */
 template<typename State, typename C>
-NFA<State, C>* star(NFA<State, C>* a) {
-	NFA<State, C>* nfa = new NFA<State, C>(
-		[=](State s) {
-			return ((a->Q(s)) || (s == -1));
+NFA<pair<int,State>, C>* star(NFA<State, C>* a) {	
+	NFA<pair<int, State>, C>* nfa = new NFA<pair<int, State>, C>(
+		[=](pair<int, State> s) {
+			return (((s.first == 0) && a->Q(s.second))  || s.first == -1);
 		},
-		-1,
-		[=](State s, C c) {
-			if (s != -1)
-				return a->d1(s, c);
-			else
-				return list<State>{};
+		pair<int, State>(-1,a->q0),
+		[=](pair<int, State> s, C c) {
+			if (s.first == 0) {
+				return nfaH(a->d1(s.second, c), 0);
+			}
+			else {
+				return list< pair<int, State>>{};
+			}
 		},
-		[=](State s) {
-			if (s != -1) {
-				if (a->F(s)) {
-					list<State> temp = a->d2(s);
-					temp.push_back(-1);
+		[=](pair<int, State> s) {
+			if (s.first != -1) {	// if its not the start state
+				if (a->F(s.second) && s.first == 0) {	// if it is a previous accept state
+					list<pair<int, State>> temp = nfaH(a->d2(s.second), 0);
+					temp.push_back(pair<int,State>(-1,a->q0));
 					return temp;
 				}
-				else
-					return a->d2(s);
+				else // if it wasnt a prev accept state
+					return nfaH(a->d2(s.second), 0);
 			}	
-			else if (s == -1) 
-				return list<State>{a->q0};
+			else if (s.first == -1) 
+				return list<pair<int, State>>{pair<int, State>(0,a->q0)};
 			else
-				return list<State>{};
+				return list<pair<int, State>>{};
 		},
-		[=](State s) {
-			return s == -1;
+		[=](pair<int, State> s) {
+			return s.first == -1;
 		});
 	return nfa;
 }
@@ -4590,8 +4682,8 @@ void testQ_q0_F(DFA<State, C>*dfa, list<list<int>>Q, list<int>q0, list<list<int>
 	TASK #45 - (Generator) Write a function that accepts a regular expressions 
 	and generates a random string that would be accepted by it.
 */
-template<typename C>
-pair<bool, list<int>> generate(RX<C> * rx) {
+template<typename State, typename C>
+pair<bool, list<int>> generate(RX<State, C>* rx) {
 	pair<bool, list<int>> ret;
 	ret.first = true;
 	if (rx->id() == 'n') {
@@ -4679,7 +4771,7 @@ list<int> listCirc(list<int> a, list<int> b) {
 	}
 	return a;
 }
-void generateTest(list<RX<int>*> RXL) {
+void generateTest(list<RX<int,int>*> RXL) {
 	cout << "TESTING GENERATE FUNCTION:" << endl;
 	int count = 1;
 	for (auto i : RXL) {
@@ -4697,3 +4789,767 @@ void generateTest(list<RX<int>*> RXL) {
 			count++;
 	}
 }
+/*
+	TASK #46 - Write a compiler from regular expressions to NFAs.
+*/
+template<typename State, typename C>
+NFAType<State, C> compile(RX<State, C>* rx){
+	if (rx->id() == 'n') {
+		NFA<State, C>* ret = new NFA<State, C>(
+			[](State s) {return s == 0; },
+			0,
+			[](State s, C c) {
+				if (s == 0) {
+					return list<State>{0};
+				}
+			},
+			[](State s) {return list<State>{}; },
+			[](State s) {return false; }
+			);
+		NFAType<State, C> NTRet(ret);
+		return NTRet;
+	}
+	else if (rx->id() == 'e') {
+		NFA<State, C>* ret = new NFA<State, C>(
+			[](State s) {return s == 0 || s == 1; },
+			0,
+			[](State s, C c) {
+				if (s == 0) {
+					return list<State>{1};
+				}
+				if (s == 1) {
+					return list<State>{1};
+				}
+			},
+			[](State s) {return list<State>{}; },
+			[](State s) {return s == 0; }
+			);
+		NFAType<State, C> NTRet(ret);
+		return NTRet;
+	}
+	else if (rx->id() == 'c') {
+		NFAType<State, C> NTRet(DFAtoNFA(onlyChar(rx->getC())));
+		return NTRet;
+	}
+	else if (rx->id() == 'u') {
+		NFAType<State, C> l(compile(rx->getL()));
+		NFAType<State, C> r(compile(rx->getR()));
+		int lType = l.whatType();
+		int rType = r.whatType();
+		if (lType == 1 && rType == 1) {
+			NFAType<State, C> NTRet(unionNFA(l.single, r.single));
+			return NTRet;
+		}
+		else if (lType == 1 && rType == 2) {
+			NFAType<State, C> NTRet(unionNFA(unionNFA(l.single, l.single), r.tpair));
+			return NTRet;
+		}
+		else if (lType == 1 && rType == 3) {
+			auto* ret = unionNFA(l.single, l.single);
+			auto* ret1 = unionNFA(ret, ret);
+			NFAType<State, C> NTRet(unionNFA(ret1, r.tpair2));
+			return NTRet;
+		}
+		else if (lType == 1 && rType == 4) {
+			auto* ret = unionNFA(l.single, l.single);
+			auto* ret1 = unionNFA(ret, ret);
+			auto* ret2 = unionNFA(ret1,ret1);
+			NFAType<State, C> NTRet(unionNFA(ret2, r.tpair3));
+			return NTRet;
+		}
+		else if (lType == 1 && rType == 5) {
+			auto* ret = unionNFA(l.single, l.single);
+			auto* ret1 = unionNFA(ret, ret);
+			auto* ret2 = unionNFA(ret1, ret1);
+			auto* ret3 = unionNFA(ret2,ret2);
+			NFAType<State, C> NTRet(unionNFA(ret3, r.tpair4));
+			return NTRet;
+		}
+		else if (lType == 2 && rType == 1) {
+			NFAType<State, C> NTRet(unionNFA(l.tpair, unionNFA(r.single, r.single)));
+			return NTRet;
+		}
+		else if (lType == 2 && rType == 2) {
+			NFAType<State, C> NTRet(unionNFA(l.tpair, r.tpair));
+			return NTRet;
+		}
+		else if (lType == 2 && rType == 3) {
+			NFAType<State, C> NTRet(unionNFA(unionNFA(l.tpair, l.tpair), r.tpair2));
+			return NTRet;
+		}
+		else if (lType == 2 && rType == 4) {
+			auto* ret = unionNFA(l.tpair, l.tpair);
+			auto* ret1 = unionNFA(ret,ret);
+			NFAType<State, C> NTRet(unionNFA(ret1, r.tpair3));
+			return NTRet;
+		}
+		else if (lType == 2 && rType == 5) {
+			auto* ret = unionNFA(l.tpair, l.tpair);
+			auto* ret1 = unionNFA(ret, ret);
+			auto* ret2 = unionNFA(ret1, ret1);
+			NFAType<State, C> NTRet(unionNFA(ret2, r.tpair4));
+			return NTRet;
+		}
+		else if (lType == 3 && rType == 1) {
+			auto* ret = unionNFA(r.single, r.single);
+			auto * ret1 = unionNFA(ret,ret);
+			NFAType<State, C> NTRet(unionNFA(l.tpair2, ret1));
+			return NTRet;
+		}
+		else if (lType == 3 && rType == 2) {
+			NFAType<State, C> NTRet(unionNFA(l.tpair2, unionNFA(r.tpair, r.tpair)));
+			return NTRet;
+		}
+		else if (lType == 3 && rType == 3) {
+			NFAType<State, C> NTRet(unionNFA(l.tpair2, r.tpair2));
+			return NTRet;
+		}
+		else if (lType == 3 && rType == 4) {
+			auto* ret = unionNFA(l.tpair2, l.tpair2);
+			NFAType<State, C> NTRet(unionNFA(ret, r.tpair3));
+			return NTRet;
+		}
+		else if (lType == 3 && rType == 5) {
+			auto* ret = unionNFA(l.tpair2, l.tpair2);
+			auto* ret1 = unionNFA(ret, ret);
+			NFAType<State, C> NTRet(unionNFA(ret1, r.tpair4));
+			return NTRet;
+		}
+		else if (lType == 4 && rType == 1) {
+			auto* ret = unionNFA(r.single, r.single);
+			auto* ret1 = unionNFA(ret, ret);
+			auto* ret2 = unionNFA(ret1, ret1);
+			NFAType<State, C> NTRet(unionNFA(l.tpair3, ret2));
+			return NTRet;
+		}
+		else if (lType == 4 && rType == 2) {
+			auto* ret = unionNFA(r.tpair, r.tpair);
+			auto* ret1 = unionNFA(ret, ret);
+			NFAType<State, C> NTRet(unionNFA(l.tpair3, ret1));
+			return NTRet;
+		}
+		else if (lType == 4 && rType == 3) {
+			auto* ret = unionNFA(r.tpair2, r.tpair2);
+			NFAType<State, C> NTRet(unionNFA(l.tpair3, ret));
+			return NTRet;
+		}
+		else if (lType == 4 && rType == 4) {
+			
+			NFAType<State, C> NTRet(unionNFA(l.tpair3 , r.tpair3));
+			return NTRet;
+		}
+		else if (lType == 4 && rType == 5) {
+			auto* ret = unionNFA(l.tpair3, l.tpair3);
+			NFAType<State, C> NTRet(unionNFA(ret, r.tpair4));
+			return NTRet;
+		}
+		
+		else if (lType == 5 && rType == 1) {
+		auto* ret = unionNFA(r.single, r.single);
+		auto* ret1 = unionNFA(ret, ret);
+		auto* ret2 = unionNFA(ret1, ret1);
+		auto* ret3 = unionNFA(ret2, ret2);
+		NFAType<State, C> NTRet(unionNFA(l.tpair4, ret3));
+		return NTRet;
+		}
+		else if (lType == 5 && rType == 2) {
+		auto* ret = unionNFA(r.tpair, r.tpair);
+		auto* ret1 = unionNFA(ret, ret);
+		auto* ret2 = unionNFA(ret1, ret1);
+		NFAType<State, C> NTRet(unionNFA(l.tpair4, ret2));
+		return NTRet;
+		}
+		else if (lType == 5 && rType == 3) {
+		auto* ret = unionNFA(r.tpair2, r.tpair2);
+		auto* ret1 = unionNFA(ret, ret);
+		NFAType<State, C> NTRet(unionNFA(l.tpair4, ret1));
+		return NTRet;
+		}
+		else if (lType == 5 && rType == 4) {
+		auto* ret = unionNFA(r.tpair3, r.tpair3);
+		NFAType<State, C> NTRet(unionNFA(l.tpair4, ret));
+		return NTRet;
+		}
+		else if (lType == 5 && rType == 5) {
+		NFAType<State, C> NTRet(unionNFA(l.tpair4, r.tpair4));
+		return NTRet;
+		}
+		else {
+			cout << "FAIL IN UNION COMPILE";
+		}
+	}
+	else if (rx->id() == 'o') {
+		NFAType<State, C> l(compile(rx->getL()));
+		NFAType<State, C> r(compile(rx->getR()));
+		int lType = l.whatType();
+		int rType = r.whatType();
+		if (lType == 1 && rType == 1) {
+			NFAType<State, C> NTRet(concat(l.single, r.single));
+			return NTRet;
+		}
+		else if (lType == 1 && rType == 2) {
+			NFAType<State, C> NTRet(concat(unionNFA(l.single, l.single), r.tpair));
+			return NTRet;
+		}
+		else if (lType == 1 && rType == 3) {
+			auto* ret = unionNFA(l.single, l.single);
+			auto* ret1 = unionNFA(ret, ret);
+			NFAType<State, C> NTRet(concat(ret1, r.tpair2));
+			return NTRet;
+		}
+		else if (lType == 1 && rType == 4) {
+			auto* ret = unionNFA(l.single, l.single);
+			auto* ret1 = unionNFA(ret, ret);
+			auto* ret2 = unionNFA(ret1, ret1);
+			NFAType<State, C> NTRet(concat(ret2, r.tpair3));
+			return NTRet;
+		}
+		else if (lType == 1 && rType == 5) {
+			auto* ret = unionNFA(l.single, l.single);
+			auto* ret1 = unionNFA(ret, ret);
+			auto* ret2 = unionNFA(ret1, ret1);
+			auto* ret3 = unionNFA(ret2, ret2);
+			NFAType<State, C> NTRet(concat(ret3, r.tpair4));
+			return NTRet;
+		}
+		else if (lType == 2 && rType == 1) {
+			NFAType<State, C> NTRet(concat(l.tpair, unionNFA(r.single, r.single)));
+			return NTRet;
+		}
+		else if (lType == 2 && rType == 2) {
+			NFAType<State, C> NTRet(concat(l.tpair, r.tpair));
+			return NTRet;
+		}
+		else if (lType == 2 && rType == 3) {
+			NFAType<State, C> NTRet(concat(unionNFA(l.tpair, l.tpair), r.tpair2));
+			return NTRet;
+		}
+		else if (lType == 2 && rType == 4) {
+			auto* ret = unionNFA(l.tpair, l.tpair);
+			auto* ret1 = unionNFA(ret, ret);
+			NFAType<State, C> NTRet(concat(ret1, r.tpair3));
+			return NTRet;
+		}
+		else if (lType == 2 && rType == 5) {
+			auto* ret = unionNFA(l.tpair, l.tpair);
+			auto* ret1 = unionNFA(ret, ret);
+			auto* ret2 = unionNFA(ret1, ret1);
+			NFAType<State, C> NTRet(concat(ret2, r.tpair4));
+			return NTRet;
+		}
+		else if (lType == 3 && rType == 1) {
+			auto* ret = unionNFA(r.single, r.single);
+			auto* ret1 = unionNFA(ret, ret);
+			NFAType<State, C> NTRet(concat(l.tpair2, ret1));
+			return NTRet;
+		}
+		else if (lType == 3 && rType == 2) {
+			NFAType<State, C> NTRet(concat(l.tpair2, unionNFA(r.tpair, r.tpair)));
+			return NTRet;
+		}
+		else if (lType == 3 && rType == 3) {
+			NFAType<State, C> NTRet(concat(l.tpair2, r.tpair2));
+			return NTRet;
+		}
+		else if (lType == 3 && rType == 4) {
+			auto* ret = unionNFA(l.tpair2, l.tpair2);
+			NFAType<State, C> NTRet(concat(ret, r.tpair3));
+			return NTRet;
+		}
+		else if (lType == 3 && rType == 5) {
+			auto* ret = unionNFA(l.tpair2, l.tpair2);
+			auto* ret1 = unionNFA(ret, ret);
+			NFAType<State, C> NTRet(concat(ret1, r.tpair4));
+			return NTRet;
+		}
+		else if (lType == 4 && rType == 1) {
+			auto* ret = unionNFA(r.single, r.single);
+			auto* ret1 = unionNFA(ret, ret);
+			auto* ret2 = unionNFA(ret1, ret1);
+			NFAType<State, C> NTRet(concat(l.tpair3, ret2));
+			return NTRet;
+		}
+		else if (lType == 4 && rType == 2) {
+			auto* ret = unionNFA(r.tpair, r.tpair);
+			auto* ret1 = unionNFA(ret, ret);
+			NFAType<State, C> NTRet(concat(l.tpair3, ret1));
+			return NTRet;
+		}
+		else if (lType == 4 && rType == 3) {
+			auto* ret = unionNFA(r.tpair2, r.tpair2);
+			NFAType<State, C> NTRet(concat(l.tpair3, ret));
+			return NTRet;
+		}
+		else if (lType == 4 && rType == 4) {
+			NFAType<State, C> NTRet(concat(l.tpair3, r.tpair3));
+			return NTRet;
+		}
+		else if (lType == 4 && rType == 5) {
+			auto* ret = unionNFA(l.tpair3, l.tpair3);
+			NFAType<State, C> NTRet(concat(ret, r.tpair4));
+			return NTRet;
+		}
+
+		else if (lType == 5 && rType == 1) {
+			auto* ret = unionNFA(r.single, r.single);
+			auto* ret1 = unionNFA(ret, ret);
+			auto* ret2 = unionNFA(ret1, ret1);
+			auto* ret3 = unionNFA(ret2, ret2);
+			NFAType<State, C> NTRet(concat(l.tpair4, ret3));
+			return NTRet;
+		}
+		else if (lType == 5 && rType == 2) {
+			auto* ret = unionNFA(r.tpair, r.tpair);
+			auto* ret1 = unionNFA(ret, ret);
+			auto* ret2 = unionNFA(ret1, ret1);
+			NFAType<State, C> NTRet(concat(l.tpair4, ret2));
+			return NTRet;
+		}
+		else if (lType == 5 && rType == 3) {
+			auto* ret = unionNFA(r.tpair2, r.tpair2);
+			auto* ret1 = unionNFA(ret, ret);
+			NFAType<State, C> NTRet(concat(l.tpair4, ret1));
+			return NTRet;
+		}
+		else if (lType == 5 && rType == 4) {
+			auto* ret = unionNFA(r.tpair3, r.tpair3);
+			NFAType<State, C> NTRet(concat(l.tpair4, ret));
+			return NTRet;
+		}
+		else if (lType == 5 && rType == 5) {
+			NFAType<State, C> NTRet(concat(l.tpair4, r.tpair4));
+			return NTRet;
+		}
+		else {
+			cout << "FAIL IN CONCAT COMPILE";
+		}
+	}
+	else if (rx->id() == 's') {
+		NFAType<State, C> l(compile(rx->getL()));
+		int lType = l.whatType();
+		if (lType == 1) {
+			NFAType<State, C> NTRet(star(l.single));
+			return NTRet;
+		}
+		else if (lType == 2) {
+			NFAType<State, C> NTRet(star(l.tpair));
+			return NTRet;
+		}
+		else if (lType == 3) {
+			NFAType<State, C> NTRet(star(l.tpair2));
+			return NTRet;
+		}
+		else if (lType == 4) {
+			NFAType<State, C> NTRet(star(l.tpair3));
+			return NTRet;
+		}
+		else if (lType == 5) {
+			NFAType<State, C> NTRet(star(l.tpair4));
+			return NTRet;
+		}
+		else {
+			cout << "FAIL IN STAR COMPILE";
+		}
+	}
+}
+//template<typename State, typename State1, typename C>
+//NFA<State,C>* oneStateUnion(NFA<State1, C>*u, State temp) {
+//	NFA<State, C>* retNFA = new NFA<State, C>(
+//		[=](State s) {
+//			if (s == 0) {
+//				return true;
+//			}
+//			else if (u->Q(pair <int, State>(0, s - 1))) {
+//				return true;
+//			}
+//			else {
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				count += count + 1;
+//				if (u->Q(pair < int, State>(1, s - count))) {
+//					true;
+//				}
+//				else {
+//					return false;
+//				}
+//			}
+//		},
+//		0,
+//			[=](State s, C c) {
+//			if (s == 0) {
+//				return list<State>{};
+//			}
+//			else if (u->Q(pair < int, State>(0, s - 1))) {
+//				State temp1 = s - 1;
+//				pair<int, State> temp2(0, temp1);
+//				list<pair<int, State>> tempRet = u->d1(temp2, c); // pair<int, State>;
+//				list<State> ret;
+//				for (auto i : tempRet) {
+//					if (i.first == 0) {
+//						ret.push_back(i.second + 1);
+//					}
+//				}
+//				return ret;
+//			}
+//			else {
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				count += count + 1; // count is now the (1,0) state
+//				State temp = s - count;
+//				pair<int, State> temp2(1, temp);
+//				list<pair<int, State>> tempRet = u->d1(temp2, c);
+//				list<State> ret;
+//				for (auto i : tempRet) {
+//					if (i.first == 1) {
+//						ret.push_back(i.second + count);
+//					}
+//				}
+//				return ret;
+//			}
+//		},
+//			[=](State s) {
+//			if (s == 0) {
+//				list<pair<int, State>> tempRet = u->d2(u->q0);
+//				list<State> ret = { 1 };
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				count += count + 1;
+//				ret.push_back(count);
+//				return ret;
+//			}
+//			else if (u->Q(pair < int, State>(0, s - 1))) {
+//				pair<int, State> temp2(0, s - 1);
+//				list<pair<int, State>> tempRet = u->d2(temp2); // pair<int, State>;
+//				list<State> ret;
+//				for (auto i : tempRet) {
+//					if (i.first == 0) {
+//						ret.push_back(i.second + 1);
+//					}
+//				}
+//				return ret;
+//			}
+//			else {
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				count += count + 1; // count is now the (1,0) state
+//				State temp = s - count;
+//				pair<int, State> temp2(1, temp);
+//				list<pair<int, State>> tempRet = u->d2(temp2);
+//				list<State> ret;
+//				for (auto i : tempRet) {
+//					if (i.first == 1) {
+//						ret.push_back(i.second + count);
+//					}
+//				}
+//				return ret;
+//			}
+//		},
+//			[=](State s) {
+//			if (u->F(pair < int, State>(0, s - 1))) {
+//				true;
+//			}
+//			else {
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				count += count + 1;
+//				if (u->F(pair < int, State>(1, s - count))) {
+//					true;
+//				}
+//				else {
+//					return false;
+//				}
+//			}
+//		}
+//		);
+//	return retNFA;
+//}
+//template<typename State, typename State1, typename C>
+//NFA<State, C>* oneStateConcat(NFA<State1, C>* u, State temp) {
+//	NFA<State, C>* retNFA = new NFA<State, C>(
+//		[=](State s) {
+//			if (u->Q(pair <int, State>(0, s))) {
+//				return true;
+//			}
+//			else {
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				if (u->Q(pair < int, State>(1, s - count))) {
+//					true;
+//				}
+//				else {
+//					return false;
+//				}
+//			}
+//		},
+//		0,
+//			[=](State s, C c) {
+//			if (u->Q(pair<int, State>(0, s))) {
+//				pair<int, State> temp2(0, s);
+//				list<pair<int, State>> tempRet = u->d1(temp2, c); // pair<int, State>;
+//				list<State> ret;
+//				for (auto i : tempRet) {
+//					if (i.first == 0) {
+//						ret.push_back(i.second);
+//					}
+//				}
+//				return ret;
+//			}
+//			else {
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				pair<int, State> temp2(1, s - count);
+//				list<pair<int, State>> tempRet = u->d1(temp2, c);
+//				list<State> ret;
+//				for (auto i : tempRet) {
+//					if (i.first == 1) {
+//						ret.push_back(i.second + count);
+//					}
+//				}
+//				return ret;
+//			}
+//		},
+//			[=](State s) {
+//			if (u->Q(pair < int, State>(0, s))) {
+//				pair<int, State> temp2(0, s);
+//				list<pair<int, State>> tempRet = u->d2(temp2); // pair<int, State>;
+//				list<State> ret;
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				for (auto i : tempRet) {
+//					if (i.first == 0) {
+//						ret.push_back(i.second);
+//					}
+//					if (i.first == 1) {
+//						ret.push_back(i.second + count);
+//					}
+//				}
+//				return ret;
+//			}
+//			else {
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				State temp = s - count;
+//				pair<int, State> temp2(1, temp);
+//				list<pair<int, State>> tempRet = u->d2(temp2);
+//				list<State> ret;
+//				for (auto i : tempRet) {
+//					if (i.first == 1) {
+//						ret.push_back(i.second + count);
+//					}
+//				}
+//				return ret;
+//			}
+//		},
+//			[=](State s) {
+//			State count = 0;
+//			while (u->Q(pair < int, State>(0, count))) {
+//				count++;
+//			}
+//			if (u->F(pair < int, State>(1, s - count))) {
+//				true;
+//			}
+//			else {
+//				return false;
+//			}
+//		}
+//		);
+//	return retNFA;
+//}
+template<typename State, typename C>
+void testCompile(RX<State, C>* rx, string name) {
+	pair<bool, list<int>> str = generate(rx);
+	if (str.first) {
+		NFAType<int, int> rxnfa = compile(rx);
+		if (rxnfa.initSingle) {
+			if (!rxnfa.single->accepts(str.second)) {
+				cout << endl << "## FAIL ##" << name << endl;
+			}	
+		}
+		else if (rxnfa.init_tpair) {
+			if (!rxnfa.tpair->accepts(str.second)) {
+				cout << endl << "## FAIL ##" << name << endl;
+			}
+		}
+		else if (rxnfa.init_tpair2) {
+			if (!rxnfa.tpair2->accepts(str.second)) {
+				cout << endl << "## FAIL ##" << name << endl;
+			}
+		}
+		else if (rxnfa.init_tpair3) {
+			if (!rxnfa.tpair3->accepts(str.second)) {
+				cout << endl << "## FAIL ##" << name << endl;
+			}
+		}
+		else if (rxnfa.init_tpair4) {
+			if (!rxnfa.tpair4->accepts(str.second)) {
+				cout << endl << "## FAIL ##" << name << endl;
+			}
+		}
+		else if (rxnfa.init_tpair5) {
+			if (!rxnfa.tpair5->accepts(str.second)) {
+				cout << endl << "## FAIL ##" << name << endl;
+			}
+		}
+		else {
+			cout << endl << "#### Went past tpair5" << name << " ###" << endl;
+		}
+	}
+	else {
+		cout << endl << "Empty Language: " << name << endl;
+	}
+}
+//template<typename State, typename C>
+//NFA<int,C>* oneStateUnion(NFA<pair<int,State>, C>*u) {
+//	int count = 0;
+//	int count1 = 1;
+//	map<int, pair<int, State>> map;
+//	map.insert(pair<int, pair<int, State>>(0, u->q0));
+//	while (u->Q(pair<int, State>>(0, count))) {
+//		map.insert(pair<int, pair<int, State>>(count1, pair<int, State>(0, count)));
+//		count1++;
+//		count++;
+//	}
+//	while (u->Q(pair<int, State >> (1, count))) {
+//		map.insert(pair<int, pair<int, State>>(count1, pair<int, State>(1, count)));
+//		count1++;
+//		count++;
+//	}
+//
+//
+//	NFA<State, C>* retNFA = new NFA<State, C>(
+//		[=](State s) {
+//			if (s == 0) {
+//				return true;
+//			}
+//			else if (u->Q(pair <int, State>(0, s - 1))) {
+//				return true;
+//			}
+//			else {
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				count += count + 1;
+//				if (u->Q(pair < int, State>(1, s - count))) {
+//					true;
+//				}
+//				else {
+//					return false;
+//				}
+//			}
+//		},
+//		0,
+//			[=](State s, C c) {
+//			if (s == 0) {
+//				return list<State>{};
+//			}
+//			else if (u->Q(pair < int, State>(0, s - 1))) {
+//				State temp1 = s - 1;
+//				pair<int, State> temp2(0, temp1);
+//				list<pair<int, State>> tempRet = u->d1(temp2, c); // pair<int, State>;
+//				list<State> ret;
+//				for (auto i : tempRet) {
+//					if (i.first == 0) {
+//						ret.push_back(i.second + 1);
+//					}
+//				}
+//				return ret;
+//			}
+//			else {
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				count += count + 1; // count is now the (1,0) state
+//				State temp = s - count;
+//				pair<int, State> temp2(1, temp);
+//				list<pair<int, State>> tempRet = u->d1(temp2, c);
+//				list<State> ret;
+//				for (auto i : tempRet) {
+//					if (i.first == 1) {
+//						ret.push_back(i.second + count);
+//					}
+//				}
+//				return ret;
+//			}
+//		},
+//			[=](State s) {
+//			if (s == 0) {
+//				list<pair<int, State>> tempRet = u->d2(u->q0);
+//				list<State> ret = { 1 };
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				count += count + 1;
+//				ret.push_back(count);
+//				return ret;
+//			}
+//			else if (u->Q(pair < int, State>(0, s - 1))) {
+//				pair<int, State> temp2(0, s - 1);
+//				list<pair<int, State>> tempRet = u->d2(temp2); // pair<int, State>;
+//				list<State> ret;
+//				for (auto i : tempRet) {
+//					if (i.first == 0) {
+//						ret.push_back(i.second + 1);
+//					}
+//				}
+//				return ret;
+//			}
+//			else {
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				count += count + 1; // count is now the (1,0) state
+//				State temp = s - count;
+//				pair<int, State> temp2(1, temp);
+//				list<pair<int, State>> tempRet = u->d2(temp2);
+//				list<State> ret;
+//				for (auto i : tempRet) {
+//					if (i.first == 1) {
+//						ret.push_back(i.second + count);
+//					}
+//				}
+//				return ret;
+//			}
+//		},
+//			[=](State s) {
+//			if (u->F(pair < int, State>(0, s - 1))) {
+//				true;
+//			}
+//			else {
+//				State count = 0;
+//				while (u->Q(pair < int, State>(0, count))) {
+//					count++;
+//				}
+//				count += count + 1;
+//				if (u->F(pair < int, State>(1, s - count))) {
+//					true;
+//				}
+//				else {
+//					return false;
+//				}
+//			}
+//		}
+//		);
+//	return retNFA;
+//}
