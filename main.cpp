@@ -142,6 +142,10 @@ NFAType<State,C> compile(RX<State, C>* rx);
 //NFA<State, C>* oneStateConcat(NFA<State1, C>* u, State temp);
 template<typename State, typename C>
 void testCompile(RX<State, C>* rx, string name);
+template<typename State, typename State2, typename C>
+void equalityCheckNFA_RX(RX<State, C>* rx, NFA<State2, C>* nfa, string rxname, string nfaname);
+template<typename State, typename State2, typename C>
+void equalityCheckRX(RX<State, C>* rx1, RX<State2, C>* rx2, string name1, string name2, bool shouldBeEqual);
 
 int COUNT=0;
 int main(void) {
@@ -4035,10 +4039,13 @@ int main(void) {
 	auto* rxd12 = NFAtoDFA(nt12.tpair);
 	auto* drx12N = NFAtoDFA(rx12N);
 	testEquality(rxd12, drx12N, true, "rxd12==drx12N", list<int> {0, 1});
+	// void equalityChecker(RX<State, C>* rx, NFA<State2, C>* nfa, string rxname, string nfaname);
+	equalityCheckNFA_RX(rx12, rx12N,"rx12","rx12N");
+	/*
+		Testing TASK 48
+	*/
+	equalityCheckRX(rx1, rx2, "rx1", "rx2", false);
 
-	
-	
-	
 	return 0;
 }
 /*
@@ -5717,3 +5724,194 @@ void testCompile(RX<State, C>* rx, string name) {
 //		);
 //	return retNFA;
 //}
+template<typename State, typename State2, typename C>
+void equalityCheckNFA_RX(RX<State, C>* rx, NFA<State2, C>*nfa, string rxname, string nfaname) {
+		NFAType<int, int> rxnfa = compile(rx);
+		if (rxnfa.initSingle) {
+			auto* rxnfa_d = NFAtoDFA(rxnfa.single);
+			auto* nfa_d = NFAtoDFA(nfa); 
+			string temp = " == ";
+			string temp2 = rxname + temp + nfaname;
+			testEquality(rxnfa_d, nfa_d, true, temp2, list<int> {0, 1});
+		}
+		else if (rxnfa.init_tpair) {
+			auto* rxnfa_d = NFAtoDFA(rxnfa.tpair);
+			auto* nfa_d = NFAtoDFA(nfa);
+			string temp = " == ";
+			string temp2 = rxname + temp + nfaname;
+			testEquality(rxnfa_d, nfa_d, true, temp2, list<int> {0, 1});
+		}
+		else if (rxnfa.init_tpair2) {
+			auto* rxnfa_d = NFAtoDFA(rxnfa.tpair2);
+			auto* nfa_d = NFAtoDFA(nfa);
+			string temp = " == ";
+			string temp2 = rxname + temp + nfaname;
+			testEquality(rxnfa_d, nfa_d, true, temp2, list<int> {0, 1});
+		}
+		else if (rxnfa.init_tpair3) {
+			auto* rxnfa_d = NFAtoDFA(rxnfa.tpair3);
+			auto* nfa_d = NFAtoDFA(nfa);
+			string temp = " == ";
+			string temp2 = rxname + temp + nfaname;
+			testEquality(rxnfa_d, nfa_d, true, temp2, list<int> {0, 1});
+		}
+		else if (rxnfa.init_tpair4) {
+			auto* rxnfa_d = NFAtoDFA(rxnfa.tpair4);
+			auto* nfa_d = NFAtoDFA(nfa);
+			string temp = " == ";
+			string temp2 = rxname + temp + nfaname;
+			testEquality(rxnfa_d, nfa_d, true, temp2, list<int> {0, 1});
+		}
+		else if (rxnfa.init_tpair5) {
+			auto* rxnfa_d = NFAtoDFA(rxnfa.tpair5);
+			auto* nfa_d = NFAtoDFA(nfa);
+			string temp = " == ";
+			string temp2 = rxname + temp + nfaname;
+			testEquality(rxnfa_d, nfa_d, true, temp2, list<int> {0, 1});
+		}
+		else {
+			string temp = " == ";
+			string temp2 = rxname + temp + nfaname;
+			cout << endl << "#### FAIL: Went past tpair5" << temp2 << " ###" << endl;
+		}
+}
+/*
+	TASK #48 - Write an equality checker for regular expressions.
+*/
+template<typename State, typename State2, typename C>
+void equalityCheckRX(RX<State, C>* rx1, RX<State2, C>* rx2, string name1, string name2, bool shouldBeEqual) {
+	NFAType<int, int> rxnfa1 = compile(rx1);
+	NFAType<int, int> rxnfa2 = compile(rx2);
+	int lType = rxnfa1.whatType();
+	int rType = rxnfa2.whatType();
+	string tempStrE = " == ";
+	string tempStr = name1 + tempStrE + name2;
+	if (lType == 1 && rType == 1) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.single);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.single);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 1 && rType == 2) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.single);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 1 && rType == 3) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.single);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair2);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 1 && rType == 4) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.single);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair3);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 1 && rType == 5) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.single);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair4);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 2 && rType == 1) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.single);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 2 && rType == 2) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 2 && rType == 3) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair2);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 2 && rType == 4) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair3);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 2 && rType == 5) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair4);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 3 && rType == 1) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair2);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.single);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 3 && rType == 2) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair2);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 3 && rType == 3) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair2);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair2);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 3 && rType == 4) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair2);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair3);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 3 && rType == 5) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair2);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair4);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 4 && rType == 1) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair3);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.single);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 4 && rType == 2) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair3);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 4 && rType == 3) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair3);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair2);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 4 && rType == 4) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair3);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair3);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 4 && rType == 5) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair3);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair4);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 5 && rType == 1) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair4);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.single);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 5 && rType == 2) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair4);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 5 && rType == 3) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair4);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair2);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 5 && rType == 4) {
+		auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair4);
+		auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair3);
+		testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else if (lType == 5 && rType == 5) {
+	auto* rxnfa_d1 = NFAtoDFA(rxnfa1.tpair4);
+	auto* rxnfa_d2 = NFAtoDFA(rxnfa2.tpair4);
+	testEquality(rxnfa_d1, rxnfa_d2, shouldBeEqual, tempStr, list<int> {0, 1});
+	}
+	else {
+		cout << "\t\t## FAIL IN equalityCheckRX ##";
+	}
+}
