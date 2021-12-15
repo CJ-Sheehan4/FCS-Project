@@ -3835,7 +3835,7 @@ int main(void) {
 	cout << "L(rx12) = {e}" << endl;
 	RX<int, int>* rx12 = new RX_Star<int, int>(new RX_Null<int, int>());
 	rx12->print();
-	cout << endl << endl;
+	
 	// accepts
 	list<int> rx12str1 = { };
 	//rejects
@@ -3910,11 +3910,9 @@ int main(void) {
 	auto* rxd1 = NFAtoDFA(nt1.tpair); // then converting the NFA to a DFA 
 	auto* drx1N = NFAtoDFA(rx1N); // also converting the NFA defined above, into a DFA to test the two for equality
 	testEquality(rxd1, drx1N, true, "rxd1==drxN1", list<int> {0, 1}); // testing for equality 
+	equalityCheckNFA_RX(rx1, rx1N, "rx2", "N2"); // This function does all of the above. Takes a RX and NFA as the arguments
 	// (L(rx2) = strings having a 1 third from the end) == (L(N2) = strings having a 1 third from the end) 
-	NFAType<int, int> nt2(compile(rx2));
-	auto* rxd2 = NFAtoDFA(nt2.tpair4);
-	auto* d2 = NFAtoDFA(N2);
-	testEquality(rxd2, d2, true, "rxd2==d2", list<int> {0, 1});
+	equalityCheckNFA_RX(rx2, N2, "rx2", "N2");
 	// (L(onlyEven) = strings of even length) == (L(rx3) = strings of even length) 
 	// where onlyEven is a previous defined DFA
 	NFAType<int, int> nt3(compile(rx3));
@@ -3948,25 +3946,13 @@ int main(void) {
 		{ {1,0}, {0}, {0,1,0},{0,0},{1,1,0,1,0},{},
 		{1}, {0,1}, {1,0,1}, {0,1,1}, {1,0,0,1}, {1,1,1} }
 	);
-	NFAType<int, int> nt4(compile(rx4));
-	auto* rxd4 = NFAtoDFA(nt4.tpair4);
-	auto* drx4N = NFAtoDFA(rx4N);
-	testEquality(rxd4, drx4N, true, "rxd4==drx4N", list<int> {0, 1});
+	equalityCheckNFA_RX(rx4, rx4N, "rx4", "rx4N");
 	// L(rx5) = strings ending in either 00 or 11. This is the same language of the previously defined N6
-	NFAType<int, int> nt5(compile(rx5));
-	auto* rxd5 = NFAtoDFA(nt5.tpair4);
-	auto* d6 = NFAtoDFA(N6);
-	testEquality(rxd5, d6, true, "rxd5==d6", list<int> {0, 1});
+	equalityCheckNFA_RX(rx5, N6, "rx5", "N6");
 	// L(rx6) = only the strings of {00},{01},{10},{11} and is equal to the previously defined N7
-	NFAType<int, int> nt6(compile(rx6));
-	auto* rxd6 = NFAtoDFA(nt6.tpair2);
-	auto* d7 = NFAtoDFA(N7);
-	testEquality(rxd6, d7, true, "rxd6==d7", list<int> {0, 1});
+	equalityCheckNFA_RX(rx6, N7, "rx6", "N7");
 	// L(rx7) = all strings that start and end in 1. This is equal to the previously defined N9
-	NFAType<int, int> nt7(compile(rx7));
-	auto* rxd7 = NFAtoDFA(nt7.tpair4);
-	auto* d9 = NFAtoDFA(N9);
-	testEquality(rxd7, d9, true, "rxd7==d9", list<int> {0, 1});
+	equalityCheckNFA_RX(rx7, N9, "rx7", "N9");
 	// this NFA below represents the empty language
 	NFA<int, int>* rx8N = new NFA<int, int>(
 		[](int s) { return s == 0 || s == 1; },
@@ -3993,28 +3979,16 @@ int main(void) {
 		{ {1,0}, {0}, {0,1,0},{0,0},{1,1,0,1,0},{},
 		{}, {0,1}, {1,0,1}, {0,1,1}, {1,0,0,1}, {1,1,1} }
 	);
-	NFAType<int, int> nt8(compile(rx8));
-	auto* rxd8 = NFAtoDFA(nt8.tpair2);
-	auto* drx8N = NFAtoDFA(rx8N);
-	testEquality(drx8N, rxd8, true, "drx8N==rxd8", list<int> {0, 1});
+	equalityCheckNFA_RX(rx8, rx8N, "rx8", "rx8N");
 	// L(rx9) = all strings that if they are even will be all 1's, if the string length is 
 	// odd then it will be all 0's, accepts epsilon
 	// This has equality with previously defined N8
-	NFAType<int, int> nt9(compile(rx9));
-	auto* rxd9 = NFAtoDFA(nt9.tpair4);
-	auto* d8 = NFAtoDFA(N8);
-	testEquality(rxd9, d8, true, "rxd9==d8", list<int> {0, 1});
+	equalityCheckNFA_RX(rx9, N8, "rx9", "N8");
 	// L(rx10) = aceepts strings that are multiples of 2 or 3 and is equal to the language of previously defined N3
-	NFAType<int, int> nt10(compile(rx10));
-	auto* rxd10 = NFAtoDFA(nt10.tpair4);
-	auto* d3 = NFAtoDFA(N3);
-	testEquality(rxd10, d3, true, "rxd10==d3", list<int> {0, 1});
+	equalityCheckNFA_RX(rx10, N3, "rx10", "N3");
 	// L(rx11) = all strings that end in 1 with any amount of 0's before it, including no 0's. 
 	// This is equal to the language of fpreviously defined N5
-	NFAType<int, int> nt11(compile(rx11));
-	auto* rxd11 = NFAtoDFA(nt11.tpair2);
-	auto* d5 = NFAtoDFA(N5);
-	testEquality(rxd11, d5, true, "d11==d7", list<int> {0,1});
+	equalityCheckNFA_RX(rx11, N5, "rx11", "N5");
 	// rx12 is the language null* meaning that it only accepts epsilon
 	NFA<int, int>* rx12N = new NFA<int, int>(
 		[](int s) { return s == 0 || s == 1; },
@@ -4035,16 +4009,93 @@ int main(void) {
 		},
 			[](int s) {return s == 0; }
 		);
-	NFAType<int, int> nt12(compile(rx12));
-	auto* rxd12 = NFAtoDFA(nt12.tpair);
-	auto* drx12N = NFAtoDFA(rx12N);
-	testEquality(rxd12, drx12N, true, "rxd12==drx12N", list<int> {0, 1});
-	// void equalityChecker(RX<State, C>* rx, NFA<State2, C>* nfa, string rxname, string nfaname);
 	equalityCheckNFA_RX(rx12, rx12N,"rx12","rx12N");
 	/*
-		Testing TASK 48
+		TASK 49 - Write a dozen tests for your regular expression equality checker.
 	*/
-	equalityCheckRX(rx1, rx2, "rx1", "rx2", false);
+	equalityCheckRX(rx1, rx2, "rx1", "rx2", false); // the bool at the end of the parameters is for 'shouldBeEqual'
+	equalityCheckRX(rx3, rx4, "rx3", "rx4", false);
+	equalityCheckRX(rx5, rx6, "rx5", "rx6", false);
+	equalityCheckRX(rx7, rx8, "rx7", "rx8", false);
+	equalityCheckRX(rx9, rx10, "rx9", "rx10", false);
+	equalityCheckRX(rx11, rx10, "rx11", "rx10", false);
+	equalityCheckRX(rx8, rx12, "rx8", "rx12", false);
+	equalityCheckRX(rx2, rx2, "rx2", "rx2", true);
+	// This is an examle of how if you concat epsilon with anything rx you just get that rx
+	RX<int, int>* rx13 = new RX_Char<int, int>(0);
+	RX<int, int>* rx14 = new RX_Circ(new RX_Char<int, int>(0),new RX_Epsilon<int,int>());
+	equalityCheckRX(rx13, rx14, "rx13", "rx14", true);
+	// This is an example of how if you concat null on to any rx, you get null. 
+	// rx8 was also an rx that had null concated on the end. 
+	RX<int, int>* rx15 = new RX_Circ<int,int>(new RX_Union<int, int>(
+		new RX_Star<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(0))),
+			new RX_Circ<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(0)), new RX_Char<int, int>(0))),
+		new RX_Null<int,int>());
+	equalityCheckRX(rx15, rx8, "rx15", "rx8", true);
+	// example of how null* is equal to epsilon
+	RX<int, int>* rx16 = new RX_Epsilon<int, int>();
+	equalityCheckRX(rx16, rx12, "rx16", "rx12", true);
+	// (0U1) == ((0U0) U (1U1))
+	RX<int, int>* rx17 = new RX_Union<int,int>(new RX_Union<int,int>(new RX_Char<int,int>(0), new RX_Char<int, int>(0)),
+		new RX_Union<int,int>(new RX_Char<int, int>(1), new RX_Char<int, int>(1)));
+	equalityCheckRX(rx17, rx1, "rx17", "rx1", true);
+	// (0o0)* U (0o0o0)* == (0o0o0)* U (0o0)*
+	RX<int, int>* rx18 = new RX_Union<int, int>(
+		new RX_Star<int,int>(new RX_Circ<int,int>(new RX_Circ<int, int>(
+			new RX_Char<int,int>(0), new RX_Char<int, int>(0)), new RX_Char<int, int>(0))),
+		new RX_Star<int, int>(new RX_Circ<int,int>(new RX_Char<int, int>(0), new RX_Char<int, int>(0)))
+		);
+	equalityCheckRX(rx18, rx10, "rx18", "rx10", true);
+	// (0U1) o (0U1) == ((0o0)U(0o1)) U ((1o0)U(1o1))
+	RX<int, int>* rx19 = new RX_Union<int, int>(
+		new RX_Union<int, int>(
+			new RX_Circ<int,int>(new RX_Char<int,int>(0), new RX_Char<int, int>(0)),
+			new RX_Circ<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1))),
+		new RX_Union<int, int>(
+			new RX_Circ<int,int>(new RX_Char<int, int>(1), new RX_Char<int, int>(0)),
+			new RX_Circ<int, int>(new RX_Char<int, int>(1), new RX_Char<int, int>(1))));
+	equalityCheckRX(rx19, rx6, "rx19", "rx6", true);
+	// e.g. from textbook pg 65, #9 = {e, 0, 1, 01, 11, 011, 111, 0111.....}
+	// L(rx20) = (0Ue)o1*
+	// L(rx21) = 0o1*U1*
+	RX<int, int>* rx20 = new RX_Circ<int,int>(new RX_Union<int,int>(
+		new RX_Char<int,int>(0), new RX_Epsilon<int,int>()),
+		new RX_Star<int,int>(new RX_Char<int,int>(1)));
+	RX<int, int>* rx21 = new RX_Union<int, int>(new RX_Circ<int,int>(
+		new RX_Char<int,int>(0), new RX_Star<int,int>(new RX_Char<int, int>(1))),
+		new RX_Star<int, int>(new RX_Char<int, int>(1)));
+	equalityCheckRX(rx20, rx21, "rx20", "rx21", true);
+	// null unioned with any RX just gives you that RX
+	RX<int, int>* rx22 = new RX_Union<int, int>(
+		new RX_Union<int,int>(new RX_Char<int,int>(0), new RX_Char<int, int>(1)),new RX_Null<int,int>());
+	RX<int, int>* rx23 = new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1));
+	equalityCheckRX(rx22, rx23, "rx22", "rx23", true);
+	// e* == e
+	RX<int, int>* rx24 = new RX_Star<int, int>(new RX_Epsilon<int,int>());
+	RX<int, int>* rx25 = new RX_Epsilon<int, int>();
+	equalityCheckRX(rx24, rx25, "rx24", "rx25", true);
+	// (L(rx26) = 1o(1*) U e) == (L(rx27) = 1*)
+	RX<int, int>* rx26 = new RX_Union<int, int>(new RX_Circ<int,int>(
+		new RX_Char<int,int>(1),new RX_Star<int,int>(new RX_Char<int, int>(1))),
+		new RX_Epsilon<int,int>());
+	RX<int, int>* rx27 = new RX_Star<int, int>(new RX_Char<int,int>(1));
+	equalityCheckRX(rx26, rx27, "rx26", "rx27", true);
+	// (L(rx28) = (0U1)o((0U1)*) U e) == (L(rx29) = (0U1)*)
+	RX<int, int>* rx28 = new RX_Union<int, int>(new RX_Circ<int, int>(
+		new RX_Union<int,int>(new RX_Char<int, int>(0),new RX_Char<int, int>(1)), 
+		new RX_Star<int, int>(new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1)))),
+		new RX_Epsilon<int, int>());
+	RX<int, int>* rx29 = new RX_Star<int, int>(
+		new RX_Union<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(1)));
+	equalityCheckRX(rx28, rx29, "rx28", "rx29", true);
+	// L(rx30) = ((0U(1o1))Ue)o1*
+	// L(rx21) = 0o1*U1*
+	RX<int, int>* rx30 = new RX_Circ<int, int>(new RX_Union<int, int>(
+		new RX_Union<int,int>(new RX_Char<int,int>(0), new RX_Circ<int, int>(new RX_Char<int, int>(1),
+			new RX_Char<int, int>(1))), new RX_Epsilon<int, int>()),
+		new RX_Star<int, int>(new RX_Char<int, int>(1)));
+	equalityCheckRX(rx30, rx21, "rx30", "rx21", true);
+
 
 	return 0;
 }
@@ -5584,7 +5635,7 @@ void testCompile(RX<State, C>* rx, string name) {
 		}
 	}
 	else {
-		cout << endl << "Empty Language: " << name << endl;
+		cout << "Empty Language: " << name << endl;
 	}
 }
 //template<typename State, typename C>
