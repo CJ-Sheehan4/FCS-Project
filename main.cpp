@@ -4095,7 +4095,58 @@ int main(void) {
 			new RX_Char<int, int>(1))), new RX_Epsilon<int, int>()),
 		new RX_Star<int, int>(new RX_Char<int, int>(1)));
 	equalityCheckRX(rx30, rx21, "rx30", "rx21", true);
-
+	/*
+		Testing optimize
+	*/
+	// rx31 is optimized rx15, meaning that rx15 was a large expression but was concat with null
+	// so the optimized version is just null.
+	// Its the same case for rx 32 which is an optimized version of rx8
+	RX<int,int>* rx31 = rx15->optimize();
+	RX<int, int>* rx32 = rx8->optimize();
+	// rx 33 is an optimized version of rx12 becuase rx12 was null*, meaning that it is just epsilon.
+	RX<int, int>* rx33 = rx12->optimize();
+	cout << endl;
+	cout << "rx31: ";
+	rx31->print();
+	cout << endl;
+	cout << "rx32: ";
+	rx32->print();
+	cout << endl;
+	cout << "rx33: ";
+	rx33->print();
+	cout << endl;
+	// This is an examle of how if you concat epsilon with anything rx you just get that rx
+	// optimized rx14 was 0oe, the optimized version, rx35 is e
+	// rx 36 is another example of this
+	RX<int, int>* rx35 = rx14->optimize();
+	cout << "rx35: ";
+	rx35->print();
+	cout << endl;
+	RX<int, int>* rx36 = new RX_Union<int, int>(new RX_Circ<int,int>(new RX_Char<int,int>(1),
+		new RX_Epsilon<int,int>()),
+		new RX_Char<int,int>(0));
+	rx36->optimize();
+	cout << "rx36: ";
+	rx36->print();
+	cout << endl;
+	// rx22 was (0u1) U null, rx38 is optimized to be just (0U1)
+	RX<int, int>* rx38 = rx22->optimize();
+	cout << "rx38: ";
+	rx38->print();
+	cout << endl;
+	// example same as above
+	RX<int, int>* rx37 = new RX_Union<int, int>(new RX_Char<int, int>(1),
+		new RX_Null<int, int>());
+	RX<int, int>* rx39 = rx37->optimize();
+	cout << "rx39: ";
+	rx39->print();
+	cout << endl;
+	// e* is just e
+	RX<int, int>* rx40 = new RX_Star<int, int>(new RX_Epsilon<int,int>());
+	RX<int, int>* rx41 = rx40->optimize();
+	cout << "rx41: ";
+	rx41->print();
+	cout << endl;
 
 	return 0;
 }

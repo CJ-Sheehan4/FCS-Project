@@ -1,6 +1,10 @@
 /*
 		TASK 41 - Define a data type to represent regular expressions.
 */
+/*
+	TASK #50 - Write an optimizer for regular expressions that simplifies them.
+	*This was implemented within the RX object*
+*/
 #ifndef RX_H
 #define RX_H
 #include <iostream>
@@ -13,6 +17,7 @@ public:
 	*/
 	virtual void print(void) = 0;
 	virtual char id(void) = 0;
+	virtual RX<State, C>* optimize(void) = 0;
 	virtual RX<State, C>* getL(void) = 0;
 	virtual RX<State, C>* getR(void) = 0;
 	virtual C getC(void) = 0;
@@ -26,6 +31,9 @@ public:
 	}
 	char id(void) override{
 		return 'n';
+	}
+	RX<State, C>* optimize(void) override {
+		return this;
 	}
 	RX<State, C>* getL(void) override {
 		return nullptr;
@@ -47,6 +55,9 @@ public:
 	char id(void) override {
 		return 'e';
 	}
+	RX<State, C>* optimize(void) override {
+		return this;
+	}
 	RX<State, C>* getL(void) override {
 		return nullptr;
 	}
@@ -66,6 +77,9 @@ public:
 	}
 	char id(void) override {
 		return 'c';
+	}
+	RX<State, C>* optimize(void) override {
+		return this;
 	}
 	RX<State, C>* getL(void) override {
 		return nullptr;
@@ -92,6 +106,49 @@ public:
 	char id(void) override {
 		return 'u';
 	}
+	RX<State, C>* optimize(void) override {
+		
+		if (getL()->id() == 'o') {
+			if (getL()->getL()->id() == 'e') {
+				delete getL()->getL();
+				this->l = getL()->getR();
+				delete getL()->getR();
+				return this;
+			}
+			else if (getL()->getR()->id() == 'e') {
+				delete getL()->getR();
+				this->l = getL()->getL();
+				delete getL()->getL();
+				return this;
+			}
+				
+		}	
+		else if (getR()->id() == 'o') {
+			if (getR()->getR()->id() == 'e') {
+				delete getR()->getR();
+				this->l = getR()->getL();
+				delete getR()->getL();
+				return this;
+			}
+			else if (getR()->getL()->id() == 'e') {
+				delete getR()->getL();
+				this->l = getR()->getR();
+				delete getR()->getR();
+				return this;
+			}
+		}
+		else if (getL()->id() == 'n') {
+			
+			return getR();
+		}
+		else if (getR()->id() == 'n') {
+			
+			return getL();
+		}
+		else {
+			return this;
+		}
+	}
 	RX<State, C>* getL(void) override {
 		return l;
 	}
@@ -114,6 +171,45 @@ public:
 	}
 	char id(void) override {
 		return 's';
+	}
+	RX<State, C>* optimize(void) override {
+		if (getL()->id() == 'n') {
+			RX<State,C>*temp = new RX_Epsilon<State,C>();
+			return temp;
+		}
+		if (getL()->id() == 'e') {
+			return getL();
+		}
+		if (getL() != nullptr) {
+			if (getL()->getL() != nullptr && getL()->getR() != nullptr) {
+				if (getL()->id() == 'o') {
+					if (getL()->getL()->id() == 'e') {
+						delete getL()->getL();
+						this->next = getL()->getR();
+						delete getL()->getR();
+						return this;
+					}
+					else if (getL()->getR()->id() == 'e') {
+						delete getL()->getR();
+						this->next = getL()->getL();
+						delete getL()->getL();
+						return this;
+					}
+					else {
+						return this;
+					}
+				}
+				else {
+					return this;
+				}
+			}
+			else {
+				return this;
+			}
+		}
+		else {
+			return this;
+		}
 	}
 	RX<State, C>* getL(void) override {
 		return next;
@@ -140,6 +236,22 @@ public:
 	}
 	char id(void) override {
 		return 'o';
+	}
+	RX<State, C>* optimize(void) override {
+		if (l->id() == 'n') {
+			return this->l;
+		}
+		else if (r->id() == 'n') {
+			return this->r;
+		}
+		else if (l->id() == 'e') {
+			return getR();
+		}
+		else if (r->id() == 'e') {
+			return getL();
+		}
+		else 
+			return this;
 	}
 	RX<State, C>* getL(void) override {
 		return l;
