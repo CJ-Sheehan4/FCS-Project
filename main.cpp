@@ -143,7 +143,7 @@ NFAType<State,C> compile(RX<State, C>* rx);
 template<typename State, typename C>
 void testCompile(RX<State, C>* rx, string name);
 
-
+int COUNT=0;
 int main(void) {
 	list<int> englishAlpha = { '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
 		'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
@@ -3781,24 +3781,18 @@ int main(void) {
 	// accepts nothing
 	// rejects all
 	
-	// rx9: ((1o1)*o((0o0)*o0)) U (((0o0)*o0)o(1o1)*)
-	cout << "L(rx9) = 1's are a consecutive even length, and 0's are of consecutive odd length" << endl;
+	// rx9: L(rx9) = (((0o0)*o0) U (1o1)*)
+	cout << "L(rx9) = if the strins is even its 1's, if its odd, its 0's" << endl;
 	RX<int, int>* rx9 = new RX_Union<int, int>(
-		new RX_Circ<int, int>(new RX_Star<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(1), new RX_Char<int, int>(1))),
-			new RX_Circ<int, int>(new RX_Star<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(0))), new RX_Char<int, int>(0))),
-		new RX_Circ<int, int>(new RX_Circ<int, int>(
-			new RX_Star<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(0), new RX_Char<int, int>(0))),new RX_Char<int, int>(0)),
-			new RX_Star<int, int>(new RX_Circ<int, int>(new RX_Char<int, int>(1), new RX_Char<int, int>(1)))));
-	/*RX<int>* rx9 = new RX_Union<int>(
-		new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(1), new RX_Char<int>(1))),
-		new RX_Star<int>(new RX_Circ<int>(new RX_Star<int>(new RX_Circ<int>(new RX_Char<int>(0), 
-			new RX_Char<int>(0))),new RX_Char<int>(0))));*/
+		new RX_Circ<int,int>(new RX_Star<int,int>(new RX_Circ<int,int>(new RX_Char<int,int>(0), new RX_Char<int, int>(0))),
+			new RX_Char<int,int>(0)),
+		new RX_Star<int,int>(new RX_Circ<int,int>(new RX_Char<int,int>(1), new RX_Char<int, int>(1))));
 	rx9->print();
 	cout << endl << endl;
 	// accepts
 	list<int> rx9str1 = { 0,0,0 };
-	list<int> rx9str2 = { 1,1,0 };
-	list<int> rx9str3 = { 1,1,1,1,0,0,0 };
+	list<int> rx9str2 = { 1,1 };
+	list<int> rx9str3 = { };
 	//rejects
 	list<int> rx9str4 = { 1 };
 	list<int> rx9str5 = { 0,1,0 };
@@ -3866,6 +3860,9 @@ int main(void) {
 		{ {1,0,0}, {0,0,1,0,1}, {1,1,1}, {1,1,0}, {1,1,0,0}, {0,1,1,0,1,0,1},	//tests that should accept
 		{1}, {1,0,0,1}, {1,0}, {1,0,0,0,1}, {0,0,1}, {0,1,0,0,0} }	// tests that should reject
 	);
+	// The testCompile function uses the generate(rx) to get a random string that the rx would accept
+	// then uses compile to convert the rx into an NFA. From there uses the accept function for the NFA
+	// to see if it will accept the random string that was generated. 
 	testCompile(rx1, "rx1");
 	testCompile(rx2, "rx2");
 	testCompile(rx3, "rx3");
@@ -3878,7 +3875,170 @@ int main(void) {
 	testCompile(rx10, "rx10");
 	testCompile(rx11, "rx11");
 	testCompile(rx12, "rx12");
+	/*
+		Task #47 - Verify that your regular expression compiler works by using DFA equality testing in a few ways.
+	*/
+	// I am using previously defined NFA, converted to DFA's, that have the same language as some of my RX's
 
+	// This NFA only accepts the strings of {1} and {0} and is equal to the RX of rx1
+	NFA<int, int>* rx1N = new NFA<int, int>(
+		[](int s) { return s == 0 || s == 1 || s == 2; },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 0) {
+				return list<int> {1};
+			}
+			else if (s == 0 && c == 1) {
+				return list<int> {2};
+			}
+			else {
+				return list<int>{};
+			}
+		},
+		[](int s) {return list<int>{}; },
+			[](int s) {return s == 1 || s == 2; }
+		);
+	testNFA(rx1N, "rx1N", false, false,
+		{ {1}, {0}, {0},{0},{0},{0},
+		{}, {0,1}, {1,0}, {0,1,1}, {1,0,0,0}, {0,0,1} }
+	);
+	NFAType<int, int> nt1(compile(rx1)); // compiling rx1 into an NFA, 
+	auto* rxd1 = NFAtoDFA(nt1.tpair); // then converting the NFA to a DFA 
+	auto* drx1N = NFAtoDFA(rx1N); // also converting the NFA defined above, into a DFA to test the two for equality
+	testEquality(rxd1, drx1N, true, "rxd1==drxN1", list<int> {0, 1}); // testing for equality 
+	// (L(rx2) = strings having a 1 third from the end) == (L(N2) = strings having a 1 third from the end) 
+	NFAType<int, int> nt2(compile(rx2));
+	auto* rxd2 = NFAtoDFA(nt2.tpair4);
+	auto* d2 = NFAtoDFA(N2);
+	testEquality(rxd2, d2, true, "rxd2==d2", list<int> {0, 1});
+	// (L(onlyEven) = strings of even length) == (L(rx3) = strings of even length) 
+	// where onlyEven is a previous defined DFA
+	NFAType<int, int> nt3(compile(rx3));
+	auto* rxd3 = NFAtoDFA(nt3.tpair3);
+	testEquality(onlyEven, rxd3, true, "evenLength==d3", list<int> {0, 1});
+	// This NFA (L(rx4N) = ends in zero) will be equal to the rx4 of the same language
+	NFA<int, int>* rx4N = new NFA<int, int>(
+		[](int s) { return s == 0 || s == 1; },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 0) {
+				return list<int> {0};
+			}
+			else if (s == 0 && c == 1) {
+				return list<int> {1};
+			}
+			else if (s == 1 && c == 0) {
+				return list<int> {0};
+			}
+			else if (s == 1 && c == 1) {
+				return list<int> {1};
+			}
+			else {
+				return list<int>{};
+			}
+		},
+		[](int s) {return list<int>{}; },
+			[](int s) {return s == 0; }
+		);
+	testNFA(rx4N, "rx4N", false, false,
+		{ {1,0}, {0}, {0,1,0},{0,0},{1,1,0,1,0},{},
+		{1}, {0,1}, {1,0,1}, {0,1,1}, {1,0,0,1}, {1,1,1} }
+	);
+	NFAType<int, int> nt4(compile(rx4));
+	auto* rxd4 = NFAtoDFA(nt4.tpair4);
+	auto* drx4N = NFAtoDFA(rx4N);
+	testEquality(rxd4, drx4N, true, "rxd4==drx4N", list<int> {0, 1});
+	// L(rx5) = strings ending in either 00 or 11. This is the same language of the previously defined N6
+	NFAType<int, int> nt5(compile(rx5));
+	auto* rxd5 = NFAtoDFA(nt5.tpair4);
+	auto* d6 = NFAtoDFA(N6);
+	testEquality(rxd5, d6, true, "rxd5==d6", list<int> {0, 1});
+	// L(rx6) = only the strings of {00},{01},{10},{11} and is equal to the previously defined N7
+	NFAType<int, int> nt6(compile(rx6));
+	auto* rxd6 = NFAtoDFA(nt6.tpair2);
+	auto* d7 = NFAtoDFA(N7);
+	testEquality(rxd6, d7, true, "rxd6==d7", list<int> {0, 1});
+	// L(rx7) = all strings that start and end in 1. This is equal to the previously defined N9
+	NFAType<int, int> nt7(compile(rx7));
+	auto* rxd7 = NFAtoDFA(nt7.tpair4);
+	auto* d9 = NFAtoDFA(N9);
+	testEquality(rxd7, d9, true, "rxd7==d9", list<int> {0, 1});
+	// this NFA below represents the empty language
+	NFA<int, int>* rx8N = new NFA<int, int>(
+		[](int s) { return s == 0 || s == 1; },
+		0,
+		[](int s, int c) {
+			if (s == 0 && c == 1) {
+				return list<int> {0};
+			}
+			else {
+				return list<int>{};
+			}
+		},
+		[](int s) {
+			if (s == 0) {
+				return list<int> {1};
+			}
+			else {
+				return list<int>{};
+			}
+		},
+		[](int s) {return false; }
+		);
+	testNFA(rx8N, "rx4N", true, false,
+		{ {1,0}, {0}, {0,1,0},{0,0},{1,1,0,1,0},{},
+		{}, {0,1}, {1,0,1}, {0,1,1}, {1,0,0,1}, {1,1,1} }
+	);
+	NFAType<int, int> nt8(compile(rx8));
+	auto* rxd8 = NFAtoDFA(nt8.tpair2);
+	auto* drx8N = NFAtoDFA(rx8N);
+	testEquality(drx8N, rxd8, true, "drx8N==rxd8", list<int> {0, 1});
+	// L(rx9) = all strings that if they are even will be all 1's, if the string length is 
+	// odd then it will be all 0's, accepts epsilon
+	// This has equality with previously defined N8
+	NFAType<int, int> nt9(compile(rx9));
+	auto* rxd9 = NFAtoDFA(nt9.tpair4);
+	auto* d8 = NFAtoDFA(N8);
+	testEquality(rxd9, d8, true, "rxd9==d8", list<int> {0, 1});
+	// L(rx10) = aceepts strings that are multiples of 2 or 3 and is equal to the language of previously defined N3
+	NFAType<int, int> nt10(compile(rx10));
+	auto* rxd10 = NFAtoDFA(nt10.tpair4);
+	auto* d3 = NFAtoDFA(N3);
+	testEquality(rxd10, d3, true, "rxd10==d3", list<int> {0, 1});
+	// L(rx11) = all strings that end in 1 with any amount of 0's before it, including no 0's. 
+	// This is equal to the language of fpreviously defined N5
+	NFAType<int, int> nt11(compile(rx11));
+	auto* rxd11 = NFAtoDFA(nt11.tpair2);
+	auto* d5 = NFAtoDFA(N5);
+	testEquality(rxd11, d5, true, "d11==d7", list<int> {0,1});
+	// rx12 is the language null* meaning that it only accepts epsilon
+	NFA<int, int>* rx12N = new NFA<int, int>(
+		[](int s) { return s == 0 || s == 1; },
+		0,
+		[](int s, int c) {
+			return list<int>{};
+		},
+		[](int s) {
+			if (s == 0) {
+				return list<int>{1};
+			}
+			else if (s == 1) {
+				return list<int>{0};
+			}
+			else {
+				return list<int>{};
+			}
+		},
+			[](int s) {return s == 0; }
+		);
+	NFAType<int, int> nt12(compile(rx12));
+	auto* rxd12 = NFAtoDFA(nt12.tpair);
+	auto* drx12N = NFAtoDFA(rx12N);
+	testEquality(rxd12, drx12N, true, "rxd12==drx12N", list<int> {0, 1});
+
+	
+	
+	
 	return 0;
 }
 /*
@@ -4561,7 +4721,7 @@ DFA<list<State>, C> * NFAtoDFA(NFA<State, C> *nfa) {
 			if (s == list<State>{}) {
 				return true;
 			}
-			list<int> v;
+			list<State> v;
 			for (auto i : s) {
 				auto found = find(v.begin(), v.end(), i);
 				if (found != v.end()) {
@@ -4584,7 +4744,7 @@ DFA<list<State>, C> * NFAtoDFA(NFA<State, C> *nfa) {
 			}
 			for (auto i : s) {
 				ret = nfa->d1(i,c);
-				for (auto j : ret) {
+				for (const auto& j : ret) {
 					auto found = find(u.begin(), u.end(), j);
 					if (found == u.end()) {
 						u.push_back(j);
@@ -4600,21 +4760,21 @@ DFA<list<State>, C> * NFAtoDFA(NFA<State, C> *nfa) {
 		},
 		[nfa](list<State> s) {
 			list<State> v;
-			for (auto i : s) {
+			for (const auto& i : s) {
 				auto found = find(v.begin(), v.end(), i);
-				if (found != v.end() || s.empty()) {
+				if ((found != v.end()) || s.empty()) {
 					return false;
 				}
 				else {
 					v.push_back(i);
 				}
 			}
-			for (auto i : s) {
+			for (const auto& i : s) {
 				if (!nfa->Q(i)) {
 					return false;
 				}
 			}
-			for (auto i : s) {
+			for (const auto& i : s) {
 				if (nfa->F(i)) {
 					return true;
 				}
@@ -4626,17 +4786,21 @@ DFA<list<State>, C> * NFAtoDFA(NFA<State, C> *nfa) {
 template<typename State, typename C>
 list<State> E(list<State> x, NFA<State, C>* nfa) {
 	bool changed = true;
+	
 	while (changed) {
 		changed = false;
 		for (auto i : x) {
 			list<State> states = nfa->d2(i);
-			for (auto j : states) {
+			for (const auto& j : states) {
 				auto found = find(x.begin(), x.end(), j);
 				if (found == x.end()) {
 					changed = true;
 					x.push_back(j);
-					E(x,nfa);
+					COUNT++;
+					if(COUNT < 3000)
+						E(x,nfa);
 				}
+				
 			}
 		}
 	}

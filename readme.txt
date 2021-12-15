@@ -39,3 +39,6 @@ I struggled with this and spend days on it. I initially attempted to write a fun
 a one State NFA (e.g. NFA<State, C> ) which is all the large chunks of code that are comments out. 
 I could not figure that out and ended up wasting days on it. I went with the data type
 of NFAType that hold all types of NFA's in it. The compile functions returns this type and it id defined at the top of main. 
+
+TASK #47:
+I had to redo rx9 because it did it wrong from when I did task #43. 
