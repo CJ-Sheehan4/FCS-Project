@@ -19,7 +19,7 @@
 #include "DFA.cpp"
 #include "NFA.cpp"
 #include "TT.cpp"
-
+#include "GNFA.h"
 
 using namespace std;
 template<typename State, typename C>
@@ -4147,6 +4147,26 @@ int main(void) {
 	cout << "rx41: ";
 	rx41->print();
 	cout << endl;
+	// testing GNFA
+	// GNFA from pg 70 of textbook
+	GNFA<int, int>* g1 = new GNFA<int, int>(
+		[](int s) { return s == -1 || s == 0 || s == 1 || s == 2; },
+		list<int>{0,1},
+		[](int qi, int qj) { 
+			if (qi == -1 && qj == 1) {
+				RX<int,int>*rx = new RX_Circ<int, int>(
+					new RX_Char<int,int>(0),new RX_Star<int,int>(new RX_Char<int, int>(1)));
+				return rx;
+			}
+			else {
+				RX<int, int>* rx = new RX_Null<int,int>();
+				return rx;
+			}
+		},
+		-1,
+		0
+		);
+
 
 	return 0;
 }
